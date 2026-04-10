@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>Catppuccin Macchiato (Typst)</string>
+  <key>settings</key>
+  <array>
+    <dict>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#cad3f5</string>
+        <key>background</key>
+        <string>#24273a</string>
+        <key>caret</key>
+        <string>#f4dbd6</string>
+        <key>selection</key>
+        <string>#939ab740</string>
+        <key>invisibles</key>
+        <string>#939ab766</string>
+        <key>lineHighlight</key>
+        <string>#cad3f512</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Comments</string>
+      <key>scope</key>
+      <string>comment, punctuation.definition.comment</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#939ab7</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Strings</string>
+      <key>scope</key>
+      <string>string, punctuation.definition.string</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#a6da95</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Escapes</string>
+      <key>scope</key>
+      <string>constant.character.escape</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#f5bde6</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Numbers and Constants</string>
+      <key>scope</key>
+      <string>constant.numeric, entity.name.constant, variable.other.constant, keyword.other.unit.user-defined, keyword.other.unit.suffix.floating-point</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#f5a97f</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Keywords and Storage</string>
+      <key>scope</key>
+      <string>keyword, keyword.operator.word, keyword.operator.new, support.type.primitive, storage.type, storage.modifier, punctuation.definition.keyword</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#c6a0f6</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Builtins</string>
+      <key>scope</key>
+      <string>support.function.builtin</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#ed8796</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Functions</string>
+      <key>scope</key>
+      <string>entity.name.function, meta.function-call.method, support.function, support.function.misc, variable.function</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#8aadf4</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Types and Classes</string>
+      <key>scope</key>
+      <string>entity.name.class, entity.other.inherited-class, support.class, entity.name.struct, meta.function-call.constructor, meta.type, meta.type-alias, support.type, entity.name.type</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#eed49f</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Parameters</string>
+      <key>scope</key>
+      <string>variable.parameter, meta.function.parameters</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#cad3f5</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Punctuation</string>
+      <key>scope</key>
+      <string>punctuation</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#939ab7</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Operators and Accessors</string>
+      <key>scope</key>
+      <string>keyword.operator, punctuation.accessor, punctuation.separator.key-value, punctuation.definition.generic, punctuation.definition.typeparameters, punctuation.brackets.angle</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#8bd5ca</string>
+      </dict>
+    </dict>
+
+    <dict>
+      <key>name</key>
+      <string>Decorators and Annotations</string>
+      <key>scope</key>
+      <string>meta.annotation, meta.decorator, punctuation.decorator, punctuation.definition.annotation, storage.type.annotation</string>
+      <key>settings</key>
+      <dict>
+        <key>foreground</key>
+        <string>#f5a97f</string>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><script> </script><meta name="description" content="柳上川的博客" /><link rel="shortcut icon" href="/images/blog/avatar.avif?v=fbfd372d" type="image/x-icon" /><link rel="stylesheet" href="/fonts/SmileNerdFontMono-Regular/result.css?v=568803a4" /><link rel="stylesheet" href="/iconfonts/iconfont.css?v=db1a2290" /><link rel="stylesheet" href="/styles/tailwind.css?v=c46e8b83" /><link rel="stylesheet" href="/.tola/enhance-6b400663.css" /><script src="/scripts/site/core.js?v=44a2d3bb"></script><script src="/scripts/site/summaries.js?v=901a190f"></script><script src="/scripts/site/posts.js?v=0022ba72"></script><script src="/scripts/site/tabs.js?v=01ad2f37"></script><script src="/scripts/site/bootstrap.js?v=3ee73fa4"></script><meta name="darkreader-lock"><meta property="og:title" content="ocaml-exercises" /><meta property="og:description" content="从 ocaml-exercises 开始, 先做 Lists 分类中最开头的几道题" /><meta property="og:type" content="article" /><meta property="og:site_name" content="柳上川的博客" /><meta property="article:author" content="柳上川" /><meta property="article:published_time" content="2025-06-30" /><meta property="article:tag" content="ocaml" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="ocaml-exercises" /><meta name="twitter:description" content="从 ocaml-exercises 开始, 先做 Lists 分类中最开头的几道题" /><title>ocaml-exercises | 柳上川的博客</title></head><body><div id="content" class="flex flex-col mx-4 mb-20 scroll-smooth" lang="zh-Hans"><div class="text-2xl sm:text-3xl my-4 w-full text-center">『ocaml-exercises』</div><div class="mx-auto mb-5 flex max-w-full flex-wrap items-center justify-center gap-2 px-2 text-center"><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-sky-700/90 text-slate-200">2025-06-30</span><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-slate-600/90 text-slate-300">柳上川</span></div><div class="mx-auto my-5 flex w-fit max-w-full flex-col items-center gap-2 px-2 text-center"><div class="text-base font-semibold text-slate-300">摘要</div><div class="w-fit max-w-full text-base leading-7 text-slate-200">从 <a class="underline underline-offset-5 font-medium" href="https://ocaml.org/exercises">ocaml-exercises</a> 开始, 先做 Lists 分类中最开头的几道题</div></div><div class="flex flex-col my-10 w-fit border-2 border-slate-500"><p><span class="text-2xl">目录:</span></p><div class="w-fit pr-2 my-2"><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">┌─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#cong-na-li-kai-shi">从哪里开始</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#wei-shen-me-zhe-zu-ti-gua-he-ru-men">为什么这组题适合入门</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#lists-li-de-qian-6-ti">Lists 里的前 6 题</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#1.-qu-list-de-zui-hou-yi-ge-yuan-su">1. 取 list 的最后一个元素</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#2.-qu-list-de-zui-hou-liang-ge-yuan-su">2. 取 list 的最后两个元素</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#3.-qu-di-n-ge-yuan-su">3. 取第 <code class="font-semibold text-[#aa8bd5]"><code>n</code></code> 个元素</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#4.-qiu-list-chang-du">4. 求 list 长度</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#5.-fan-zhuan-list">5. 反转 list</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#6.-pan-duan-hui-wen">6. 判断回文</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">└─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#xiao-jie">小结</a></span></div></div></div><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="cong-na-li-kai-shi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#cong-na-li-kai-shi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">从哪里开始</span></a></h1><p><a class="underline underline-offset-5 font-medium" href="https://ocaml.org/exercises">ocaml-exercises</a> 是 OCaml 官网整理的一套习题<br />它的灵感来自 Ninety-Nine Lisp Problems, 题目按照主题分成了 <code class="font-semibold text-[#aa8bd5]"><code>Lists</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Arithmetic</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Binary Trees</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Graphs</code></code> 等若干类, 并且每道题都标了 <code class="font-semibold text-[#aa8bd5]"><code>Beginner</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Intermediate</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Advanced</code></code> 三档难度<br />官方页面同时给出了 statement, 简单测试, 以及一份参考解答, 所以它很适合拿来做一套循序渐进的入门练习</p><p>这篇先不贪多, 只从 <code class="font-semibold text-[#aa8bd5]"><code>Lists</code></code> 分类中最开头的几题开始<br />这些题本身都不算难, 但很适合用来熟悉 OCaml 里最基础的几样东西:</p><ul class="list-disc ml-5"><li>pattern matching</li><li>递归</li><li><code class="font-semibold text-[#aa8bd5]"><code>option</code></code> 类型</li><li>tail recursion</li></ul><p>如果你还没装本地环境, 可以先按官网指引安装 OCaml, 也可以直接在浏览器里用官方 playground 先跑起来<br />我这里更关心的是写法本身, 所以下面的代码都尽量保持简单, 不急着秀技巧</p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="wei-shen-me-zhe-zu-ti-gua-he-ru-men"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#wei-shen-me-zhe-zu-ti-gua-he-ru-men"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">为什么这组题适合入门</span></a></h1><p>很多语言的算法题一上来就喜欢把人往数组, 哈希表, 双指针上推<br />而 <code class="font-semibold text-[#aa8bd5]"><code>ocaml-exercises</code></code> 的开头几题更像是在训练另一件事:<br />当数据结构已经明确是 <code class="font-semibold text-[#aa8bd5]"><code>list</code></code> 时, 你能不能自然地用 “拆开再讨论” 的方式去写程序</p><p>例如看到 list, 你几乎总可以先问:</p><ul class="list-disc ml-5"><li>它是不是空表</li><li>它是不是只剩一个元素</li><li>它是不是能拆成 <code class="font-semibold text-[#aa8bd5]"><code>x :: xs</code></code></li></ul><p>这种思路在 OCaml 里非常自然, 因为 pattern matching 本来就是最顺手的表达方式<br />也正因为如此, 这批题比起 “刷题感”, 更像是在练一门语言的基本手感</p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="lists-li-de-qian-6-ti"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#lists-li-de-qian-6-ti"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">Lists 里的前 6 题</span></a></h1><h2 class="w-fit my-6" id="1.-qu-list-de-zui-hou-yi-ge-yuan-su"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#1.-qu-list-de-zui-hou-yi-ge-yuan-su"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">1. 取 list 的最后一个元素</span></a></h2><p>第一题要求写出:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml">'a <span style="color: #c6a0f6">list</span> <span style="color: #939ab7">-&gt;</span> 'a <span style="color: #c6a0f6">option</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>也就是给一个 list, 返回最后一个元素, 如果 list 为空, 就返回 <code class="font-semibold text-[#aa8bd5]"><code>None</code></code></p><p>我更喜欢直接按 list 的形状来写:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">rec </span><span style="color: #8aadf4">last</span> <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">function</span><br />  <span style="color: #c6a0f6">|</span> [] <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">None</span><br />  <span style="color: #c6a0f6">|</span> <span style="color: #939ab7">[</span>x<span style="color: #939ab7">]</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">Some</span> x<br />  <span style="color: #c6a0f6">|</span> _ <span style="color: #939ab7">::</span> xs <span style="color: #939ab7">-&gt;</span> last xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这里最关键的是第二个分支 <code class="font-semibold text-[#aa8bd5]"><code>| [x] -&gt; Some x</code></code><br />它表示 “当前 list 只剩最后一个元素了”, 于是递归可以在这里结束</p><p>这个写法的好处是很直白<br />你不需要维护额外状态, 只需要不断把问题缩小成 “求尾部 list 的最后一个元素”</p><h2 class="w-fit my-6" id="2.-qu-list-de-zui-hou-liang-ge-yuan-su"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#2.-qu-list-de-zui-hou-liang-ge-yuan-su"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">2. 取 list 的最后两个元素</span></a></h2><p>第二题和第一题几乎是同一个套路, 只是返回值从一个元素变成两个元素组成的 pair:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">rec </span><span style="color: #8aadf4">last_two</span> <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">function</span><br />  <span style="color: #c6a0f6">|</span> [] <span style="color: #c6a0f6">|</span> <span style="color: #939ab7">[</span>_<span style="color: #939ab7">]</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">None</span><br />  <span style="color: #c6a0f6">|</span> <span style="color: #939ab7">[</span>x<span style="color: #939ab7">;</span> y<span style="color: #939ab7">]</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">Some</span> (x, y)<br />  <span style="color: #c6a0f6">|</span> _ <span style="color: #939ab7">::</span> xs <span style="color: #939ab7">-&gt;</span> last_two xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>和前一题相比, 这里多注意一个 case:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">|</span> [] <span style="color: #c6a0f6">|</span> <span style="color: #939ab7">[</span>_<span style="color: #939ab7">]</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">None</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>因为长度小于 2 的 list 都不满足题意<br />而一旦命中 <code class="font-semibold text-[#aa8bd5]"><code>| [x; y]</code></code>, 说明我们已经把问题缩到了最小可解规模</p><p>这两题放在一起看, 很适合体会一件事:<br />当题目本身就是在问 “list 的末尾长什么样” 时, 递归其实是在不断丢掉前缀</p><h2 class="w-fit my-6" id="3.-qu-di-n-ge-yuan-su"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#3.-qu-di-n-ge-yuan-su"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">3. 取第 <code class="font-semibold text-[#aa8bd5]"><code>n</code></code> 个元素</span></a></h2><p>第三题开始引入 “位置” 这个概念<br />官方这里采用从 <code class="font-semibold text-[#aa8bd5]"><code>0</code></code> 开始计数的方式, 所以 <code class="font-semibold text-[#aa8bd5]"><code>at 2 ["a"; "b"; "c"; "d"]</code></code> 的结果应该是 <code class="font-semibold text-[#aa8bd5]"><code>Some "c"</code></code></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">rec </span><span style="color: #8aadf4">at</span> k <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">function</span><br />  <span style="color: #c6a0f6">|</span> [] <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">None</span><br />  <span style="color: #c6a0f6">|</span> x <span style="color: #939ab7">::</span> xs <span style="color: #939ab7">-&gt;</span><br />      <span style="color: #c6a0f6">if</span> k <span style="color: #8bd5ca">=</span> <span style="color: #f5a97f">0</span> <span style="color: #c6a0f6">then</span> <span style="color: #eed49f">Some</span> x<br />      <span style="color: #c6a0f6">else</span> at (k <span style="color: #8bd5ca">-</span> <span style="color: #f5a97f">1</span>) xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这题的核心在于: 每递归一次, 我们同时做两件事</p><ul class="list-disc ml-5"><li>list 去掉头部一个元素</li><li>下标 <code class="font-semibold text-[#aa8bd5]"><code>k</code></code> 减 1</li></ul><p>直到 <code class="font-semibold text-[#aa8bd5]"><code>k = 0</code></code>, 说明当前头元素就是我们要找的那个位置</p><p>这里顺手也能看出 <code class="font-semibold text-[#aa8bd5]"><code>option</code></code> 的一个好处:<br />越界时自然返回 <code class="font-semibold text-[#aa8bd5]"><code>None</code></code>, 不需要像某些库函数那样抛异常</p><h2 class="w-fit my-6" id="4.-qiu-list-chang-du"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#4.-qiu-list-chang-du"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">4. 求 list 长度</span></a></h2><p>这一题官方顺手提了一个 bonus: 最好写成 tail-recursive<br />原因也很直接, tail recursion 可以在 list 很长时保持常量级栈空间</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #8aadf4">length</span> xs <span style="color: #8bd5ca">=</span><br />  <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">rec </span><span style="color: #8aadf4">aux</span> acc <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">function</span><br />    <span style="color: #c6a0f6">|</span> [] <span style="color: #939ab7">-&gt;</span> acc<br />    <span style="color: #c6a0f6">|</span> _ <span style="color: #939ab7">::</span> rest <span style="color: #939ab7">-&gt;</span> aux (acc <span style="color: #8bd5ca">+</span> <span style="color: #f5a97f">1</span>) rest<br />  <span style="color: #c6a0f6">in</span><br />  aux <span style="color: #f5a97f">0</span> xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这里的 <code class="font-semibold text-[#aa8bd5]"><code>acc</code></code> 是 accumulator, 用来保存目前已经数过多少个元素<br /><code class="font-semibold text-[#aa8bd5]"><code>aux</code></code> 每处理一个节点, 就把 <code class="font-semibold text-[#aa8bd5]"><code>acc + 1</code></code> 传给下一轮递归</p><p>这一题值得记住的不是 <code class="font-semibold text-[#aa8bd5]"><code>length</code></code> 本身, 而是这种写法:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #8aadf4">f</span> xs <span style="color: #8bd5ca">=</span><br />  <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">rec </span><span style="color: #8aadf4">aux</span> acc <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">function</span><br />    <span style="color: #8bd5ca">|</span> ...<br />  <span style="color: #c6a0f6">in</span><br />  aux init xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>后面写 <code class="font-semibold text-[#aa8bd5]"><code>rev</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>map</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>filter</code></code>, 甚至很多树和图的遍历时, 这个骨架都非常常见</p><h2 class="w-fit my-6" id="5.-fan-zhuan-list"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#5.-fan-zhuan-list"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">5. 反转 list</span></a></h2><p>反转 list 也是一个非常标准的 accumulator 练习题<br />如果你已经接受了上一题的思路, 那这题几乎就是顺着写出来的:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #8aadf4">rev</span> xs <span style="color: #8bd5ca">=</span><br />  <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">rec </span><span style="color: #8aadf4">aux</span> acc <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">function</span><br />    <span style="color: #c6a0f6">|</span> [] <span style="color: #939ab7">-&gt;</span> acc<br />    <span style="color: #c6a0f6">|</span> x <span style="color: #939ab7">::</span> rest <span style="color: #939ab7">-&gt;</span> aux (x <span style="color: #939ab7">::</span> acc) rest<br />  <span style="color: #c6a0f6">in</span><br />  aux [] xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>关键就在这一句:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">|</span> x <span style="color: #939ab7">::</span> rest <span style="color: #939ab7">-&gt;</span> aux (x <span style="color: #939ab7">::</span> acc) rest</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>每次把当前头元素接到 <code class="font-semibold text-[#aa8bd5]"><code>acc</code></code> 前面, 最终 <code class="font-semibold text-[#aa8bd5]"><code>acc</code></code> 就会变成原 list 的逆序结果</p><p>这题也很适合和命令式语言的写法做对比<br />在命令式语言里, 大家容易先想 “我需要一个下标, 然后从后往前取”<br />但在 OCaml 里, 用 <code class="font-semibold text-[#aa8bd5]"><code>x :: rest</code></code> 去消费输入, 再用 <code class="font-semibold text-[#aa8bd5]"><code>x :: acc</code></code> 去构造输出, 往往是更自然的思路</p><h2 class="w-fit my-6" id="6.-pan-duan-hui-wen"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#6.-pan-duan-hui-wen"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">6. 判断回文</span></a></h2><p>前面几题做完之后, 第六题其实就很顺了<br />题目要求判断一个 list 是否是 palindrome, 也就是正着看和反着看完全一样</p><p>最直接的写法就是:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="ocaml"><span style="color: #c6a0f6">let</span> <span style="color: #8aadf4">is_palindrome</span> xs <span style="color: #8bd5ca">=</span><br />  xs <span style="color: #8bd5ca">=</span> List.rev xs</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这当然不是最讲究性能的方案, 因为它会额外做一次 <code class="font-semibold text-[#aa8bd5]"><code>List.rev</code></code><br />但对入门题来说, 它胜在表达非常清楚:<br />“回文” 这件事, 本来就等价于 “它和它的逆序相等”</p><p>这一题很适合提醒自己一件事:<br />并不是所有题都应该一上来就追求最花的解法<br />如果某个定义本身就足够直接, 那先把定义翻译成代码, 往往就是最好的起点</p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="xiao-jie"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#xiao-jie"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">小结</span></a></h1><p>只看这前 6 题, 其实已经能看出 OCaml 练习的一个节奏:</p><ul class="list-disc ml-5"><li>先把输入拆成几种 shape</li><li>再决定哪些 case 是 base case</li><li>最后让递归去把问题缩小</li></ul><p>如果你之前更习惯命令式思维, 那么这几题最值得练的地方, 往往不是 “写出答案”, 而是把眼睛训练成一看到 list, 就会自然去想 <code class="font-semibold text-[#aa8bd5]"><code>[]</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>[x]</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>x :: xs</code></code> 这些分支</p><p>下一步如果继续写, 比较自然的推进方式就是把 <code class="font-semibold text-[#aa8bd5]"><code>flatten</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>compress</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>pack</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>encode</code></code> 这几题接上<br />它们会开始引入自定义代数数据类型, 以及更明显的 “先累积, 后反转” 这种写法, 也会比前面的题更有一点函数式编程练习题的味道</p></div><script src="/.tola/spa-dac8115c.js" data-tola-generated></script></body><!-- tola:hash:70ca8c39d794f1b7:4bbcbcafd87c79ba -->
+</html>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><script> </script><meta name="description" content="柳上川的博客" /><link rel="shortcut icon" href="/images/blog/avatar.avif?v=fbfd372d" type="image/x-icon" /><link rel="stylesheet" href="/fonts/SmileNerdFontMono-Regular/result.css?v=568803a4" /><link rel="stylesheet" href="/iconfonts/iconfont.css?v=db1a2290" /><link rel="stylesheet" href="/styles/tailwind.css?v=c46e8b83" /><link rel="stylesheet" href="/.tola/enhance-6b400663.css" /><script src="/scripts/site/core.js?v=44a2d3bb"></script><script src="/scripts/site/summaries.js?v=901a190f"></script><script src="/scripts/site/posts.js?v=0022ba72"></script><script src="/scripts/site/tabs.js?v=01ad2f37"></script><script src="/scripts/site/bootstrap.js?v=3ee73fa4"></script><meta name="darkreader-lock"><meta property="og:title" content="Guix, 你撅起吧!" /><meta property="og:description" content=" guix, 撅! ! 撅起撅起撅起撅起哇  本文暂且作为虚拟机安装 Guix 的介绍, 但实机安装也完全可以参考  不过想在非自由固件(大多数机器)上安装, 请自行观看 nonguix 的文档 " /><meta property="og:type" content="article" /><meta property="og:site_name" content="柳上川的博客" /><meta property="article:author" content="柳上川" /><meta property="article:section" content="guix" /><meta property="article:published_time" content="2025-07-08" /><meta property="article:tag" content="guix" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="Guix, 你撅起吧!" /><meta name="twitter:description" content=" guix, 撅! ! 撅起撅起撅起撅起哇  本文暂且作为虚拟机安装 Guix 的介绍, 但实机安装也完全可以参考  不过想在非自由固件(大多数机器)上安装, 请自行观看 nonguix 的文档 " /><title>Guix, 你撅起吧! | 柳上川的博客</title></head><body><div id="content" class="flex flex-col mx-4 mb-20 scroll-smooth" lang="zh-Hans"><div class="text-2xl sm:text-3xl my-4 w-full text-center">『Guix, 你撅起吧!』</div><div class="mx-auto mb-5 flex max-w-full flex-wrap items-center justify-center gap-2 px-2 text-center"><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-sky-700/90 text-slate-200">2025-07-08</span><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-slate-600/90 text-slate-300">柳上川</span><span class="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold leading-none text-slate-300 sm:text-[0.95rem]"><span class="text-slate-500">in</span> <a class="text-slate-300 underline decoration-sky-500/70 underline-offset-4 transition-colors hover:text-sky-200 hover:decoration-sky-300" href="/posts/guix">guix</a></span></div><div class="mx-auto my-5 flex w-fit max-w-full flex-col items-center gap-2 px-2 text-center"><div class="text-base font-semibold text-slate-300">摘要</div><div class="w-fit max-w-full text-base leading-7 text-slate-200">guix, 撅! ! 撅起撅起撅起撅起哇<br />本文暂且作为虚拟机安装 Guix 的介绍, 但实机安装也完全可以参考<br />不过想在非自由固件(大多数机器)上安装, 请自行观看 <a class="underline underline-offset-5 font-medium" href="https://gitlab.com/nonguix/nonguix">nonguix</a> 的文档</div></div><div class="flex flex-col my-10 w-fit border-2 border-slate-500"><p><span class="text-2xl">目录:</span></p><div class="w-fit pr-2 my-2"><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">┌─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#zi-liao-lai-yuan">资料来源</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#jie-shao">介绍</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#guan-yu-gou-shi">关于勾史</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#bing-fei-gou-shi">并非勾史</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#xi-tong-an-zhuang">系统安装</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#xia-zai-iso">下载ISO</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#sshlian-jie">SSH连接</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#ci-pan-fen-qu">磁盘分区</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#ji-xu-an-zhuang">继续安装</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#jing-xiang-yuan-jia-su">镜像源加速</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#fei-zi-you-ruan-jian">非自由软件</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">└─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#pei-zhi">配置</a></span></div></div></div><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="zi-liao-lai-yuan"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#zi-liao-lai-yuan"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">资料来源</span></a></h1><p>本文主要参考自官方的文档: <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/guix.html">GNU Guix Reference Manual</a><br />本文仅为个人对 Guix 系统的大致介绍与备忘录, 倘若有更细致/不同的需求, 请享受官方的说明文档<br /><br />其他或许能帮助到你的参考资料:<br /></p><ul class="list-disc ml-5"><li><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/cookbook/en/guix-cookbook.html">GNU Guix Cookbook</a></li><li><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/guix-refcard.pdf">GNU Guix Reference Card</a></li><li><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/videos/">Guix Videos</a></li></ul><p><br />目前的 ISO 基于发行版 1.4.0<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="jie-shao"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#jie-shao"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">介绍</span></a></h1><h2 class="w-fit my-6" id="guan-yu-gou-shi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#guan-yu-gou-shi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">关于勾史</span></a></h2><p>Guix, 是<span style="display: inline-block"><del>抄袭了nix项目的代码并将其scheme归一化的邪教徒</del></span>一个现代化的工具, 用于安装, 管理, 回滚 <em>Eeverthing on your system</em><br />这样的工具有声明式/可复现的优点, 一次配置, 永远不忘!<br /><br />亦或者说 guix/nix 才是真正的懒人必备品(大概?), 当需要配置时, 作为享受共建生态的我可以不 care 那些繁琐细节<br /></p><ul class="list-disc ml-5"><li>我不想在乎我为了安装一个包还需要装其他什么无用的依赖, 因为反正会忘</li><li>我不想在乎我为了设置内核设置显卡需要编辑什么文件亦或者哪些 tricks, 因为反正会忘</li><li>我不想在乎我为了美化grub菜单, 美化桌面主题, 需要去下载哪些主题包, 运行哪些脚本, 因为反正会忘</li><li>……</li></ul><p><br />byd, 无关紧要的事情怎能如此之多? 好讨厌这些把脑子搅得乱七八糟的勾史记忆嗷!<br />洒家对这些到处查文档, 东拉一坨西拉一坨的勾史已经忍耐无法了, 可令人烦心的事情不止于此:<br /><span class="" style="font-size: 110%;">还不至于此</span>:<br /><span class="" style="font-size: 125%;">还远不至于此</span>:<br /><span class="" style="font-size: 140%;">还远远不至于此</span>:<br /></p><ul class="list-disc ml-5"><li>脚本执行到一半时台式机断电了, 先前执行的命令也只执行了一半, 然后完蛋了, 还得修, 修起来还好麻烦!</li><li>某些神秘编程语言的包管理器无 lock 机制, 时隔几个月之后发现构建发生变化</li><li>哪怕神秘包管理工具有了 lock 机制, 它也控制不了系统库发生的变化</li><li>当同时依赖 A-1.0, B-1.0, B-1.0 中的 A-1.1 时, 发生依赖冲突</li><li>构建环境未隔离, 导致构建结果与预期不符合, chroot 也可能被污染, 也无法自动计算与共享依赖</li><li>当想将桌面变成 Nord 主题的统一配色, 需要在 10001 个软件中用不同配置语言修改配色方案</li><li>当想将桌面统一从 Nord 换到 Gruvbox, 需要再次为 10001 个软件用不同配置语言进行修改</li><li>没有办法做到轻易的系统或者说包级别的状态回滚, 依赖文件系统算什么本事!</li><li>重装系统时, 想复现先前的环境会极其痛苦, 维护自己的脚本会让你想死的心都有</li><li>无法为一百台主机统一进行配置, 命令式且无原子性, 遇见网络抖动你就老实了</li><li>想临时安装体验一下某个命令, 可是安装完后发现很难卸载, 该无良软件到处拉史, 删了本体也删不掉史</li><li>照着官网的文档搭建环境, 可是总是也搭不好, 编译不过去, 于是尝试开了几个 GB 的 Docker</li><li>遇见 0-days 级别的错误, 某个库爆出投毒的丑闻, 想要单独对其降级但是发现会破坏依赖关系搞坏系统</li><li>Haskell 的某个包管理器挺史的, 开发团队在愚人节时宣布弃用它并全面转向 nix, 而这或许是愚人节特有的真心话环节 (x</li><li>……</li></ul><p><br />虽说这个世界没有银弹, 没有能实现一切愿望的圣杯, 可理想主义者们总归是怀着对璀璨未来的向往继续前进, 于是,<br />Yes! Guix is the future! ! !<br /><br /><span style="display: inline-block"><del>不是我就吹一嘴而已你们别TM当真了, 写篇介绍的文章好歹要捧下我介绍的东东吧咳咳</del></span></p><h2 class="w-fit my-6" id="bing-fei-gou-shi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#bing-fei-gou-shi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">并非勾史</span></a></h2><p>有一篇论文, <a class="underline underline-offset-5 font-medium" href="https://programming-journal.org/2023/7/1/">&lt;&lt;Building a Secure Software Supply Chain with GNU Guix&gt;&gt;</a>, 讲供应链的每个环节, 从源代码到二进制都有被攻击的可能<br /><br />传统包管理有着二进制分发, 依赖中央仓库, 难以验证构建过程是否真实的局限性<br />缺乏对 <em>Downgrade Attacks(回滚式攻击)</em> 的防御, 缺乏对 <em>Code Provenance(代码溯源)</em> 的认证<br /><br />什么叫 <em>Downgrade Attack</em>? 是一种利用系统/协议(网络协议中也有喵)的向下兼容性, 使得攻击者完成了通过降低安全级别进行攻击的手段<br />举个例子, 本地安装的 openssl-3.0 此时已修复漏洞 CVE-2023-1234, 但攻击者篡改了仓库的 metadata 且伪造了数字签名<br />此时, 看似是 openssl-3.1, 其实只是被伪造的, 还未修复漏洞时的 openssl-2.9, 更新变成了迈向较低安全性的一次降级<br /><br />在 guix-manual 的第 6.6 节(Invoking guix pull)中的 <code class="font-semibold text-[#aa8bd5]"><code>--allow-downgrades</code></code> 下面, 提及过 guix 在默认情况下可以阻止 <em>Downgrade Attacks</em><br />除非你在明确风险后运行 <code class="font-semibold text-[#aa8bd5]"><code>guix pull --allow-downgrades</code></code>, 才会使得 channel 的 git 仓库被重置为较早版本, 导致安装较旧且已知易受攻击的包<br /><br />传统的包管理工具并没有针对这种情况的版本连续性检查机制, 更新时仅验证版本号而非时间顺序<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="xi-tong-an-zhuang"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#xi-tong-an-zhuang"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">系统安装</span></a></h1><h2 class="w-fit my-6" id="xia-zai-iso"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#xia-zai-iso"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">下载ISO</span></a></h2><p>首先, 让我们从官网的 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/zh-CN/download/">地址</a> 上, 把 ISO 文件下载到本地<br />你也可以通过 <code class="font-semibold text-[#aa8bd5]"><code>https://mirrors.sjtug.sjtu.edu.cn/gnu/guix/guix-system-install-X.Y.Z.x86_64-linux.iso</code></code> 在上交的镜像站上下载<br />比如在我写下这篇文章的 2025-06-16 时, Guix System 的最新发行版本是 <code class="font-semibold text-[#aa8bd5]"><code>1.4.0</code></code>, 那么可以:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">wget https://mirrors.sjtug.sjtu.edu.cn/gnu/guix/guix-system-install-1.4.0.x86_64-linux.iso<br />curl -O https://mirrors.sjtug.sjtu.edu.cn/gnu/guix/guix-system-install-1.4.0.x86_64-linux.iso<br />axel https://mirrors.sjtug.sjtu.edu.cn/gnu/guix/guix-system-install-1.4.0.x86_64-linux.iso</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>然后我们就能用 qemu/kvm, 还有各种其他虚拟机来体验 guix, 当然也可头铁地直接在实体机上安装<br />但是<strong>极其不推荐</strong>! 强烈建议<strong>先在虚拟机上使用</strong>, 熟悉基本操作后再考虑实体安装, 而且务必记得去看下 <a class="underline underline-offset-5 font-medium" href="https://gitlab.com/nonguix/nonguix">nonguix</a> 的文档<br />当我们在虚拟机上熟悉后, 可以尝试在服务器上使用, 毕竟 guix/nix 声明式的配置, 其稳定程度坚若磐石<br /><br />我将虚拟机的启动方式配置为 UEFI, 现在启动后会出现 grub 菜单, 选中第一个 <code class="font-semibold text-[#aa8bd5]"><code>GNU Guix installation 1.4.0</code></code>, 回车进入<br /><code class="font-semibold text-[#aa8bd5]"><code>Locale language/location</code></code> 随便选一个, 然后选择 <code class="font-semibold text-[#aa8bd5]"><code>Install using the shell based process</code></code> 来手动安装<br />(因为我们需要设置镜像源与添加更多自用配置, 所以不使用 TUI 工具, 而是直接在 shell 里面手动敲命令装)<br /></p><h2 class="w-fit my-6" id="sshlian-jie"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#sshlian-jie"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">SSH连接</span></a></h2><p>TTY 中的黑色框框好丑呀! 先用 ssh 登录虚拟机<br />Guix 中类似 <code class="font-semibold text-[#aa8bd5]"><code>systemd</code></code>/<code class="font-semibold text-[#aa8bd5]"><code>openrc</code></code>/<code class="font-semibold text-[#aa8bd5]"><code>runit</code></code> 的初始化系统/服务管理器叫 <a class="underline underline-offset-5 font-medium" href="https://www.gnu.org/software/shepherd/">shepherd(牧羊人)</a><br />这是用一种 scheme 方言(<a class="underline underline-offset-5 font-medium" href="https://www.gnu.org/software/guile/">gnu/guile</a>) 写的, 听上去就觉得好酷欸不是吗 (x<br /><br />让我们使用 <code class="font-semibold text-[#aa8bd5]"><code>herd</code></code> 开启 sshd 服务:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">herd status sshd<br />herd start sshd</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>在虚拟机中为 root 设置 password: <code class="font-semibold text-[#aa8bd5]"><code>passwd root</code></code><br />在宿主机上用 ssh 连接上在虚拟机中用 <code class="font-semibold text-[#aa8bd5]"><code>ip a</code></code> 得到的 IP 地址:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">ssh root@192.168.122.14</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>(可选) 用 tmux 来避免 ssh 意外断开而导致任务退出(推荐这样做, 尤其是在 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 的时候, 因为好慢!):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 用镜像源安装 tmux<br />GUIX_BUILD_OPTIONS="--substitute-urls=https://mirror.sjtu.edu.cn/guix" guix install tmux<br /><br /># 或者这样用镜像源安装 tmux<br />guix install tmux --substitute-urls=https://mirror.sjtu.edu.cn/guix<br /><br /># ssh 成功后用 tmux 开启一个绘会话<br />tmux new-session -s guix-session<br /><br /># ssh 意外断开, 则用 ssh 再次登录后, 通过 tmux 重连已有会话<br />tmux attach-session -t guix-session</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><h2 class="w-fit my-6" id="ci-pan-fen-qu"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#ci-pan-fen-qu"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">磁盘分区</span></a></h2><p>我使用 <code class="font-semibold text-[#aa8bd5]"><code>cfdisk</code></code> 进行分区, 是 UEFI + GPT 的组合, 常见于新电脑:<br />(以防有小白不了解, 我们启动模式选的是 UEFI, 所以分区表那里选择 <code class="font-semibold text-[#aa8bd5]"><code>gpt</code></code>)<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">cfdisk /dev/vda</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><tr><td>分区</td><td>大小</td><td>类型</td><td>路径</td></tr><tr><td>ESP</td><td>512MB</td><td>EFI System</td><td>/dev/vda1</td></tr><tr><td>根分区</td><td>剩余空间</td><td>Linux filesystem</td><td>/dev/vda2</td></tr><tr><td>Swap(可选)</td><td>建议大于物理内存</td><td>Linux swap</td><td>/dev/vda3</td></tr></table></div><p>然后分别对其进行初始化:<br /></p><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><tr><td>分区</td><td>命令</td></tr><tr><td>ESP</td><td>mkfs.fat -F32 /dev/va1</td></tr><tr><td>根分区</td><td>mkfs.btrfs -L my-root /dev/vda2</td></tr><tr><td>Swap(可选)</td><td>mkswap /dev/vda3<br />swapon /dev/vda3</td></tr></table></div><p>最后进行挂载工作:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 挂载根分区<br />mount -L my-root /mnt<br /><br /># 挂载 ESP 分区 (UEFI)<br />mkdir -p /mnt/boot/efi<br />mount /dev/vda1 /mnt/boot/efi</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>(可选) 使用 swap 分区:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">mkswap /dev/vda3<br />swapon /dev/vda3</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>(可选) 倘若你不想专门设置 swap 分区, 也可使用 swap 文件:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># This is 10 GiB of swap space.  Adjust "count" to change the size.<br />dd if=/dev/zero of=/mnt/swapfile bs=1MiB count=10240<br /><br /># For security, make the file readable and writable only by root.<br />chmod 600 /mnt/swapfile<br />mkswap /mnt/swapfile<br />swapon /mnt/swapfile</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><h2 class="w-fit my-6" id="ji-xu-an-zhuang"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#ji-xu-an-zhuang"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">继续安装</span></a></h2><p>此时, 我们的根分区已经挂载到 <code class="font-semibold text-[#aa8bd5]"><code>/mnt</code></code>, 随后执行:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">herd start cow-store /mnt</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这将设置 <code class="font-semibold text-[#aa8bd5]"><code>/gnu/store</code></code> 为写入时复制(copy-on-write), 以便安装时被添加的软件包被写入 <code class="font-semibold text-[#aa8bd5]"><code>/mnt</code></code>, 而非保存在内存中而导致内存不足<br />因为下文中的 <code class="font-semibold text-[#aa8bd5]"><code>guix system init</code></code> 命令, 在第一阶段需向 <code class="font-semibold text-[#aa8bd5]"><code>/gnu/store</code></code>(最初是一个内存文件系统) 下载/构建内容<br /><br />接下来我们需要编辑文件, 以提供待安装系统的声明式配置<br />官方的 ISO 中可以使用 <code class="font-semibold text-[#aa8bd5]"><code>nano</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>mg</code></code>(emacs clone), <code class="font-semibold text-[#aa8bd5]"><code>nvi</code></code>(vi clone) 命令进行编辑, 我们下文将使用 <code class="font-semibold text-[#aa8bd5]"><code>nano</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">mkdir</span> /mnt/etc<br /><span style="color: #8aadf4">nano</span> /mnt/etc/config.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>务必记得 <strong>将配置文件存储在目标根目录下</strong>, 比如 <code class="font-semibold text-[#aa8bd5]"><code>/mnt/etc/config.scm</code></code>, 不然当重启到新系统后, 它就丢失了<br /></p><p>以下是一份作为示例的 <code class="font-semibold text-[#aa8bd5]"><code>/mnt/etc/config.scm</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="scm"><span style="color: #939ab7">;;</span><span style="color: #939ab7"> This is an operating system configuration template</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7"> for a "bare bones" setup, with no X11 display server.</span><br /><br /><span style="color: #939ab7">(</span><span style="color: #8aadf4">use-modules</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">gnu</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">guix</span> channels<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><span style="color: #939ab7">(</span><span style="color: #8aadf4">use-service-modules</span> networking ssh<span style="color: #939ab7">)</span><br /><span style="color: #939ab7">(</span><span style="color: #8aadf4">use-package-modules</span> screen ssh<span style="color: #939ab7">)</span><br /><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7"> 不推荐启用如下配置, 请配置下一节里面说的用户级别的 channels</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7"> 我们可以在系统配置文件中配置 `/etc/guix/chanels.nix`</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7"> 目前镜像站中只有 nju 的 channel 可访问的, 但也很不稳定 (我 tm 下到一半报错退出了啊啊啊!!!)</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7"> 所以这里直接用后续会成为默认 channel 的 codeberg 了</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7"> (define my-channels (list (channel</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7">   (inherit (car %default-channels))</span><br /><span style="color: #939ab7">;;</span><span style="color: #939ab7">   (url "https://codeberg.org/guix/guix.git"))))</span><br /><br /><span style="color: #939ab7">(</span><span style="color: #8aadf4">operating-system</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">host-name</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">guix</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">timezone</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">Asia/Shanghai</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">locale</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">en_US.utf8</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br /><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> Boot in "legacy" BIOS mode, assuming /dev/sdX is the</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> target hard disk, and "my-root" is the label of the target</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> root file system.</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">bootloader</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">bootloader-configuration</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">bootloader</span> grub-efi-bootloader<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">targets</span> <span style="color: #939ab7">'</span><span style="color: #939ab7">(</span><span style="color: #a6da95">"</span><span style="color: #a6da95">/boot/efi</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> It's fitting to support the equally bare bones ‘-nographic’</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> QEMU option, which also nicely sidesteps forcing QWERTY.</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">kernel-arguments</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">list</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">console=ttyS0,115200</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">file-systems</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">file-system</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">device</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">file-system-label</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">my-root</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">mount-point</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">/</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">type</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">btrfs</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />    %base-file-systems<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> This is where user accounts are specified.  The "root"</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> account is implicit, and is initially created with the</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> empty password.</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">users</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">user-account</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">name</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">kawayww</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">comment</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">I am KawaYww!</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">group</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">users</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">;;</span><span style="color: #939ab7"> Adding the account to the "wheel" group</span><br />      <span style="color: #939ab7">;;</span><span style="color: #939ab7"> makes it a sudoer.  Adding it to "audio"</span><br />      <span style="color: #939ab7">;;</span><span style="color: #939ab7"> and "video" allows the user to play sound</span><br />      <span style="color: #939ab7">;;</span><span style="color: #939ab7"> and access the webcam.</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">supplementary-groups</span> <span style="color: #939ab7">'</span><span style="color: #939ab7">(</span><span style="color: #a6da95">"</span><span style="color: #a6da95">wheel</span><span style="color: #a6da95">"</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">audio</span><span style="color: #a6da95">"</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">video</span><span style="color: #a6da95">"</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">wheel</span><span style="color: #a6da95">"</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">input</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />     %base-user-accounts<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> Globally-installed packages.</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">packages</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons</span> screen %base-packages<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> Add services to the baseline: a DHCP client and</span><br />  <span style="color: #939ab7">;;</span><span style="color: #939ab7"> an SSH server.</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">services</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons*</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">service</span> dhcp-client-service-type<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">service</span> openssh-service-type<br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">openssh-configuration</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">openssh</span> openssh-sans-x<span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">port-number</span> <span style="color: #f5a97f">2222</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 这里注释掉了下面默认的 `%base-services`</span><br />    <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 其中的 channel 与 substitute-urls 被替换为了镜像地址</span><br />    <span style="color: #939ab7">;;</span><span style="color: #939ab7"> %base-services)))</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">modify-services</span> %base-services<br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">guix-service-type</span> config =&gt;<br />        <span style="color: #939ab7">(</span><span style="color: #8aadf4">guix-configuration</span><br />          <span style="color: #939ab7">(</span><span style="color: #8aadf4">inherit</span> config<span style="color: #939ab7">)</span><br />          <span style="color: #939ab7">(</span><span style="color: #8aadf4">http-proxy</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">http://192.168.122.1:7890</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />          <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 如该配置文件上头所说, 不推荐在这里更改 channels</span><br />          <span style="color: #939ab7">;;</span><span style="color: #939ab7"> (channels my-channels)</span><br />          <span style="color: #939ab7">;;</span><span style="color: #939ab7"> (guix (guix-for-channels my-channels))</span><br />          <span style="color: #939ab7">(</span><span style="color: #8aadf4">substitute-urls</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons*</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">https://mirror.sjtu.edu.cn/guix/</span><span style="color: #a6da95">"</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">https://mirror.nju.edu.cn/guix/</span><span style="color: #a6da95">"</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">https://mirrors.tuna.tsinghua.edu.cn/guix/</span><span style="color: #a6da95">"</span><br />            %default-substitute-urls<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><span style="color: #939ab7">)</span>             </code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>上面的声明式配置, 其大多地方不言而喻, 而其中 <code class="font-semibold text-[#aa8bd5]"><code>channels</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>substitute-urls</code></code> 的简单概念如下:<br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>channels</code></code>: 提供包/服务的定义, 包含软件包的描述, 版本等</li><li><code class="font-semibold text-[#aa8bd5]"><code>substitute-urls</code></code>: 提供预编译的产物, 避免用户每次都要自己重新编译</li></ul><p><br />当编辑好配置文件后, 记得初始化系统(目标根目录挂载于 <code class="font-semibold text-[#aa8bd5]"><code>/mnt</code></code> 下):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">guix system init /mnt/etc/config.scm /mnt --substitute-urls="https://mirror.sjtu.edu.cn/guix/"</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>然后记得 <code class="font-semibold text-[#aa8bd5]"><code>passwd &lt;your-user-name&gt;</code></code>, 来设置用户的登录密码<br />上面声明的 <code class="font-semibold text-[#aa8bd5]"><code>port-number</code></code> 是 <code class="font-semibold text-[#aa8bd5]"><code>2222</code></code>, 所以装好后如果想 ssh, 应该用端口 2222:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">ssh -p 2222 kawayww@192.168.122.14</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>初始安装完毕后, 当你再次修改了 <code class="font-semibold text-[#aa8bd5]"><code>/etc/config.scm</code></code> 并想让配置生效, 请输入如下命令<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">sudo -E guix system reconfigure /etc/config.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p><strong>注意</strong>:<br /><code class="font-semibold text-[#aa8bd5]"><code>sudo guix</code></code> 运行的是当前用户的 <code class="font-semibold text-[#aa8bd5]"><code>guix</code></code> 命令, 而非 root 下的 <code class="font-semibold text-[#aa8bd5]"><code>guix</code></code> (<code class="font-semibold text-[#aa8bd5]"><code>sudo</code></code> 保持环境变量 <code class="font-semibold text-[#aa8bd5]"><code>PATH</code></code> 不变)<br />想显式运行 root 下的 <code class="font-semibold text-[#aa8bd5]"><code>guix</code></code>, 需要使用 <code class="font-semibold text-[#aa8bd5]"><code>sudo -i</code></code><br /><br /><strong>注意</strong>:<br /><code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 仅针对运行它的用户更新 <code class="font-semibold text-[#aa8bd5]"><code>guix</code></code> 命令与包定义<br />若你想在 root 下用 <code class="font-semibold text-[#aa8bd5]"><code>guix system reconfigure</code></code>, 则需单独进行 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code><br /><br /><strong>注意</strong>:<br /><code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 只吃环境变量 <code class="font-semibold text-[#aa8bd5]"><code>http(s)_proxy</code></code>, 不吃配置文件里 <code class="font-semibold text-[#aa8bd5]"><code>guix-configuration</code></code> 下声明式的 <code class="font-semibold text-[#aa8bd5]"><code>http-proxy</code></code>)<br />此时需要 <code class="font-semibold text-[#aa8bd5]"><code>sudo -E</code></code> 使用 user 定义的环境变量, 如 <code class="font-semibold text-[#aa8bd5]"><code>http_proxy</code></code>/<code class="font-semibold text-[#aa8bd5]"><code>https_proxy</code></code><br /></p><h2 class="w-fit my-6" id="jing-xiang-yuan-jia-su"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#jing-xiang-yuan-jia-su"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">镜像源加速</span></a></h2><p><strong>提示: 这一步有点蛋疼, 主要在于 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 这块</strong><br /><br />可参考官方文档(还有好多网络问题/坑点是自己摸出来的呜呜呜): <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Getting-Substitutes-from-Other-Servers.html">Getting-Substitutes-from-Other-Servers</a><br />可用的镜像源地址如下(写下本文时, 只有 nju 的 channel 与 substituter 是都有效的):<br /></p><ul class="list-disc ml-5"><li><a class="underline underline-offset-5 font-medium" href="https://mirror.nju.edu.cn/git/guix.git">https://mirror.nju.edu.cn/git/guix.git</a></li><li><a class="underline underline-offset-5 font-medium" href="https://mirror.sjtu.edu.cn/git/guix.git">https://mirror.sjtu.edu.cn/git/guix.git</a></li><li><a class="underline underline-offset-5 font-medium" href="https://mirrors.tuna.tsinghua.edu.cn/git/guix.git">https://mirrors.tuna.tsinghua.edu.cn/git/guix.git</a></li></ul><p><br />目前镜像站的 <code class="font-semibold text-[#aa8bd5]"><code>substitute</code></code> 比较完备, 但对 <code class="font-semibold text-[#aa8bd5]"><code>channels</code></code> 的支持很崩, 建议直接用官方迁移至 codeberg.org 上的仓库(后续将成为默认):<br />我们可以直接用环境变量来提供 <code class="font-semibold text-[#aa8bd5]"><code>substitute</code></code>(用国内源安装预编译产物来加快构建), <code class="font-semibold text-[#aa8bd5]"><code>http(s)_proxy</code></code>(为 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 准备代理):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">export GUIX_BUILD_OPTIONS="--substitute-urls=https://mirror.sjtu.edu.cn/guix"<br />export http_proxy="http://192.168.122.1:7890"<br />export https_proxy="http://192.168.122.1:7890"</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>如果我们想更新 <code class="font-semibold text-[#aa8bd5]"><code>channel</code></code>, 那么就需要 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code><br />但 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 不吃 <code class="font-semibold text-[#aa8bd5]"><code>guix-daemon</code></code> 设置的 <code class="font-semibold text-[#aa8bd5]"><code>http-proxy</code></code> 设置(但其他命令比如安装包时会用)<br />所以对于 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code>, 我们仍需单独设置环境变量: <code class="font-semibold text-[#aa8bd5]"><code>http_proxy</code></code>/<code class="font-semibold text-[#aa8bd5]"><code>https_proxy</code></code><br /><br />而除了 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 的其他 <code class="font-semibold text-[#aa8bd5]"><code>guix</code></code> 系列的命令, 都认配置文件里声明式的 <code class="font-semibold text-[#aa8bd5]"><code>http-proxy</code></code><br />(虚拟机连本地代理记得让本机防火墙 allow 一下代理端口, 比如 <code class="font-semibold text-[#aa8bd5]"><code>7890</code></code>)<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">sudo herd set-http-proxy guix-daemon http://192.168.122.1:7890</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>我们可以把 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 这样写成一行, 但是不推荐:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">http_proxy=http://192.168.122.1:7890 http_proxy=http://192.168.122.1:7890 guix pull --url=https://codeberg.org/guix/guix --substitute-urls=https://mirror.sjtu.edu.cn/guix</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>推荐的方式是修改 <code class="font-semibold text-[#aa8bd5]"><code>~/.config/guix/channels.scm</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="scm"><span style="color: #939ab7">(</span><span style="color: #8aadf4">list</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">channel</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">inherit</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">car</span> %default-channels<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">url</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">https://codeberg.org/guix/guix.git</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>如果直接用默认的 channel(目前并非 codeberg, 而是勾史的 <code class="font-semibold text-[#aa8bd5]"><code>https://git.savannah.gnu.org</code></code>), 则会遇见 <code class="font-semibold text-[#aa8bd5]"><code>Git error: SSL error: xxxxx</code></code><br />等 codeberg 成为默认的了, 只需要添加 <code class="font-semibold text-[#aa8bd5]"><code>http(s)_proxy</code></code> 环境变量后, 即可直接 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 了<br /><br />在 <code class="font-semibold text-[#aa8bd5]"><code>~/.config/guix/channels.scm</code></code> 里配置的 <code class="font-semibold text-[#aa8bd5]"><code>channels</code></code> 会在 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 时被自动读取<br />在写入该文件后, 每次更新 <code class="font-semibold text-[#aa8bd5]"><code>channels</code></code> 与系统配置的标准流程如下(一般并不需频繁调用 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 来更新包定义):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">guix pull<br />sudo -E guix system reconfigure /etc/config.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>如果在 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 期间遇见类似下面这些报错:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">guix pull: error: directory '/home/kawayww/.cache/guix' is not owned by user kawayww<br />hint: You should run this command as root; use `sudo -i' or equivalent if you really want to<br />pull as kawayww.</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">Updating channel 'guix' from Git repository at 'https://codeberg.org/guix/guix.git'...<br />guix pull: error: mkdir: Permission denied</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>那么你可以运行如下命令解决权限问题:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code>sudo chown -R $USER ~/.cache/guix</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>由于需要代理来访问 codeberg.org, <code class="font-semibold text-[#aa8bd5]"><code>sudo -E</code></code> 导入用户定义的 <code class="font-semibold text-[#aa8bd5]"><code>http_proxy</code></code>/<code class="font-semibold text-[#aa8bd5]"><code>https_proxy</code></code> 环境变量是必要的<br />不建议把 <code class="font-semibold text-[#aa8bd5]"><code>channels</code></code> 的配置写在 <code class="font-semibold text-[#aa8bd5]"><code>/etc/config.scm</code></code> 里, 不然无法享用代理<br /><br />对于运行单个命令时, 也可以临时覆盖 <code class="font-semibold text-[#aa8bd5]"><code>substitube</code></code> 服务器:<br />(字符串那里你可以添加多个 <code class="font-semibold text-[#aa8bd5]"><code>substitute-url</code></code>, 用空格进行分割)<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">guix package -i &lt;package&gt; --substitute-urls="https://mirror.sjtu.edu.cn/guix/"</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>对于使用 Guix 系统的, 请编辑 <code class="font-semibold text-[#aa8bd5]"><code>/etc/config.scm</code></code> 文件<br />将 <code class="font-semibold text-[#aa8bd5]"><code>services</code></code> 中最后的 <code class="font-semibold text-[#aa8bd5]"><code>%base-services</code></code> 替换为下面的 <code class="font-semibold text-[#aa8bd5]"><code>(modify-services $base-services (...))</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="scm">  <span style="color: #939ab7">(</span><span style="color: #8aadf4">services</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons*</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">service</span> dhcp-client-service-type<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">service</span> openssh-service-type<br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">openssh-configuration</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">openssh</span> openssh-sans-x<span style="color: #939ab7">)</span><br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">port-number</span> <span style="color: #f5a97f">2222</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 这里注释掉了下面默认的 `%base-services`</span><br />    <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 其中的 channel 与 substitute-urls 被替换为了镜像地址</span><br />    <span style="color: #939ab7">;;</span><span style="color: #939ab7"> %base-services)))</span><br />    <span style="color: #939ab7">(</span><span style="color: #8aadf4">modify-services</span> %base-services<br />      <span style="color: #939ab7">(</span><span style="color: #8aadf4">guix-service-type</span> config =&gt;<br />        <span style="color: #939ab7">(</span><span style="color: #8aadf4">guix-configuration</span><br />          <span style="color: #939ab7">(</span><span style="color: #8aadf4">inherit</span> config<span style="color: #939ab7">)</span><br />          <span style="color: #939ab7">(</span><span style="color: #8aadf4">http-proxy</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">http://192.168.122.1:7890</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 换成你自己的代理服务器</span><br />          <span style="color: #939ab7">;;</span><span style="color: #939ab7"> 不推荐在这里更改 channels</span><br />          <span style="color: #939ab7">;;</span><span style="color: #939ab7"> (channels my-channels)</span><br />          <span style="color: #939ab7">;;</span><span style="color: #939ab7"> (guix (guix-for-channels my-channels))</span><br />          <span style="color: #939ab7">(</span><span style="color: #8aadf4">substitute-urls</span> <span style="color: #939ab7">(</span><span style="color: #8aadf4">cons*</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">https://mirror.sjtu.edu.cn/guix/</span><span style="color: #a6da95">"</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">https://mirror.nju.edu.cn/guix/</span><span style="color: #a6da95">"</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">https://mirrors.tuna.tsinghua.edu.cn/guix/</span><span style="color: #a6da95">"</span><br />            %default-substitute-urls<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><h2 class="w-fit my-6" id="fei-zi-you-ruan-jian"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#fei-zi-you-ruan-jian"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">非自由软件</span></a></h2><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="pei-zhi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#pei-zhi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">配置</span></a></h1></div><script src="/.tola/spa-dac8115c.js" data-tola-generated></script></body><!-- tola:hash:42a85b668175245e:4bbcbcafd87c79ba -->
+</html>

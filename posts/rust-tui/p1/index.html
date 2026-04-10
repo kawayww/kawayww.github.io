@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><script> </script><meta name="description" content="柳上川的博客" /><link rel="shortcut icon" href="/images/blog/avatar.avif?v=fbfd372d" type="image/x-icon" /><link rel="stylesheet" href="/fonts/SmileNerdFontMono-Regular/result.css?v=568803a4" /><link rel="stylesheet" href="/iconfonts/iconfont.css?v=db1a2290" /><link rel="stylesheet" href="/styles/tailwind.css?v=c46e8b83" /><link rel="stylesheet" href="/.tola/enhance-6b400663.css" /><script src="/scripts/site/core.js?v=44a2d3bb"></script><script src="/scripts/site/summaries.js?v=901a190f"></script><script src="/scripts/site/posts.js?v=0022ba72"></script><script src="/scripts/site/tabs.js?v=01ad2f37"></script><script src="/scripts/site/bootstrap.js?v=3ee73fa4"></script><meta name="darkreader-lock"><meta property="og:title" content="rust-tui-p1: 完整架构" /><meta property="og:description" content=" 本节我们将学习一个 tui 应用的基本架构, 内容包括输入处理, 视图更新  了解终端中诸如原始模式, 文件描述符, 重定向, 管道等概念 " /><meta property="og:type" content="article" /><meta property="og:site_name" content="柳上川的博客" /><meta property="article:author" content="柳上川" /><meta property="article:section" content="rust-tui" /><meta property="article:published_time" content="2024-06-22" /><meta property="article:tag" content="rust" /><meta property="article:tag" content="tui" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="rust-tui-p1: 完整架构" /><meta name="twitter:description" content=" 本节我们将学习一个 tui 应用的基本架构, 内容包括输入处理, 视图更新  了解终端中诸如原始模式, 文件描述符, 重定向, 管道等概念 " /><title>rust-tui-p1: 完整架构 | 柳上川的博客</title></head><body><div id="content" class="flex flex-col mx-4 mb-20 scroll-smooth" lang="zh-Hans"><div class="text-2xl sm:text-3xl my-4 w-full text-center">『rust-tui-p1: 完整架构』</div><div class="mx-auto mb-5 flex max-w-full flex-wrap items-center justify-center gap-2 px-2 text-center"><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-sky-700/90 text-slate-200">2024-06-22</span><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-slate-600/90 text-slate-300">柳上川</span><span class="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold leading-none text-slate-300 sm:text-[0.95rem]"><span class="text-slate-500">in</span> <a class="text-slate-300 underline decoration-sky-500/70 underline-offset-4 transition-colors hover:text-sky-200 hover:decoration-sky-300" href="/posts/rust-tui">rust-tui</a></span></div><div class="mx-auto my-5 flex w-fit max-w-full flex-col items-center gap-2 px-2 text-center"><div class="text-base font-semibold text-slate-300">摘要</div><div class="w-fit max-w-full text-base leading-7 text-slate-200">本节我们将学习一个 tui 应用的基本架构, 内容包括输入处理, 视图更新<br />了解终端中诸如原始模式, 文件描述符, 重定向, 管道等概念</div></div><div class="flex flex-col my-10 w-fit border-2 border-slate-500"><p><span class="text-2xl">目录:</span></p><div class="w-fit pr-2 my-2"><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">┌─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#mo-ban-xiang-mu">模板项目</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#jia-gou-shuo-ming">架构说明</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#zhuang-tai-guan-li">状态管理</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#chu-li-cheng-xu">处理程序</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#shi-tu-xuan-ran">视图渲染</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#shi-jian-bu-huo">事件捕获</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#zhong-duan-she-zhi">终端设置</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#zhong-duan-gai-nian">终端概念</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#yuan-shi-mo-shi">原始模式</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#wen-jian-miao-shu-fu">文件描述符</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#zhong-ding-xiang">重定向</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#guan-dao">管道</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">└─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#wei-sheng">尾声</a></span></div></div></div><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="mo-ban-xiang-mu"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#mo-ban-xiang-mu"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">模板项目</span></a></h1><p>本节的内容大致是带你捋下一个 tui 应用的基本架构, 参考项目是官方的 <a class="underline underline-offset-5 font-medium" href="https://github.com/ratatui-org/templates">模板文件</a><br />在这之前, 你可以选择下载 <code class="font-semibold text-[#aa8bd5]"><code>cargo-generate</code></code> 来快速开发 (当然光看下面的代码与概念也不是不行):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">cargo install cargo-generate</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>上面的项目是一个模板项目, 专门为了让别人快速开始敲代码, 而不是将时间浪费在编写大量重复代码身上<br />如果你选择下载了 <code class="font-semibold text-[#aa8bd5]"><code>cargo-generate</code></code>, 你可以通过如下命令快速搭建一个叫做 tui-demo 的项目<br />(为了某些同学的网速考虑, 已经换成 gitee 镜像仓库了):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust">cargo generate <span style="color: #8bd5ca">-</span><span style="color: #8bd5ca">-</span>git https<span style="color: #939ab7">:</span><span style="color: #939ab7">//</span><span style="color: #939ab7">gitee.com/mirror_jedsek/rust-tui-template --name tui-demo</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>你可以运行它, 然后看看效果如何:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust">cd tui<span style="color: #8bd5ca">-</span>demo<br />cargo run</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>你会获得一个经典的双按钮应用: 显示一个数字, 随着按键而 +1 或 −1, 差不多长这样:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="txt">┌────────────────────────────────────Template─────────────────────────────────────┐<br />│                             This is a tui template                              │<br />│                 Press `Esc`, `Ctrl-C` or `q to stop running.                    │<br />│    Press left and right to increment and decrement th  counter respectively.    │<br />│                                   Counter: 0                                    │<br />│                                                                                 │<br />└─────────────────────────────────────────────────────────────────────────────────┘</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>搭建过程讲完了, 下面开始正文, 关于架构的讲解<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="jia-gou-shuo-ming"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#jia-gou-shuo-ming"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">架构说明</span></a></h1><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">src/<br />├── app.rs     -&gt; 保存状态与应用逻辑<br />├── event.rs   -&gt; 将待处理的终端事件包装成我们自己定义的事件模型, 并且分发事件 (key/mouse/rsize 等)<br />├── handler.rs -&gt; 接受分发的事件, 并让具体的处理函数与其一一匹配 (本系列我们只处理按键事件, 即 key-event)<br />├── lib.rs     -&gt; 定义模块 (别把 `pub mod xxx` 写在 `main.rs` 里面而已)<br />├── main.rs    -&gt; 应用程序的入口<br />├── tui.rs     -&gt; 初始化/退出tui时的一些操作<br />└── ui.rs      -&gt; 渲染组件ui</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>项目中同时存在 lib.rs 与 main.rs, 因此存在两个 crate, 前者是 lib_crate, 后者是 bin_crate<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/lib.rs</span><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Application.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">mod</span> app<span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Terminal events handler.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">mod</span> event<span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Widget renderer.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">mod</span> ui<span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Terminal user interface.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">mod</span> tui<span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Event handler.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">mod</span> handler<span style="color: #939ab7">;</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>在 <code class="font-semibold text-[#aa8bd5]"><code>lib.rs</code></code> 定义了这些模块, 因此我们就不必在 <code class="font-semibold text-[#aa8bd5]"><code>main.rs</code></code> 的头部再定义了<br /><br />注意:<br />当 lib.rs 与 main.rs 同时存在时, 视 lib.rs 为项目根, 调用里面的东西用 crate::xxx<br />而 main.rs 则视作作为依赖的bin_crate, 比如你的项目叫 tui_app, 调用里面的东西时就用 tui_app::xxx 即可<br /><br />看着这些架构, 你可能会有点懵, 没事, 爷慢慢跟你说, 保证你能明白<br /></p><h2 class="w-fit my-6" id="zhuang-tai-guan-li"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#zhuang-tai-guan-li"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">状态管理</span></a></h2><p>我们从简单开始, 先看 app.rs:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/app.rs</span><br /><span style="color: #c6a0f6">use</span> std<span style="color: #8bd5ca">::</span>error<span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Application result type.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">AppResult</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> std<span style="color: #8bd5ca">::</span>result<span style="color: #8bd5ca">::</span>Result<span style="color: #8bd5ca">&lt;</span>T, <span style="color: #eed49f">Box</span><span style="color: #8bd5ca">&lt;</span>dyn error<span style="color: #8bd5ca">::</span>Error<span style="color: #8bd5ca">&gt;</span><span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Application.</span><br /><span style="color: #f5a97f">#</span><span style="color: #939ab7">[</span><span style="color: #f5a97f">derive</span><span style="color: #939ab7">(</span><span style="color: #f5a97f">Debug</span><span style="color: #939ab7">)</span><span style="color: #939ab7">]</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">App</span> <span style="color: #939ab7">{</span><br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> Is the application running?</span><br />    <span style="color: #c6a0f6">pub</span> running<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">bool</span>,<br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> counter</span><br />    <span style="color: #c6a0f6">pub</span> counter<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">u8</span>,<br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span> Default <span style="color: #c6a0f6">for</span> App <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">default</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span> <span style="color: #939ab7">{</span><br />        <span style="color: #c6a0f6">Self</span> <span style="color: #939ab7">{</span><br />            running<span style="color: #939ab7">:</span> true<span style="color: #939ab7">,</span><br />            counter<span style="color: #939ab7">:</span> <span style="color: #f5a97f">0</span><span style="color: #939ab7">,</span><br />        <span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span> App <span style="color: #939ab7">{</span><br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> Constructs a new instance of [`App`].</span><br />    <span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">new</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span> <span style="color: #939ab7">{</span><br />        <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>default<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> Handles the tick event of the terminal.</span><br />    <span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">tick</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>self<span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><span style="color: #939ab7">}</span><br /><br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> Set running to false to quit the application.</span><br />    <span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">quit</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self<span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span>running <span style="color: #8bd5ca">=</span> false<span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">increment_counter</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self<span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />        <span style="color: #c6a0f6">if</span> <span style="color: #c6a0f6">let</span> <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span>res<span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=</span> self<span style="color: #8bd5ca">.</span>counter<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">checked_add</span><span style="color: #939ab7">(</span><span style="color: #f5a97f">1</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />            self<span style="color: #8bd5ca">.</span>counter <span style="color: #8bd5ca">=</span> res<span style="color: #939ab7">;</span><br />        <span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">decrement_counter</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self<span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />        <span style="color: #c6a0f6">if</span> <span style="color: #c6a0f6">let</span> <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span>res<span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=</span> self<span style="color: #8bd5ca">.</span>counter<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">checked_sub</span><span style="color: #939ab7">(</span><span style="color: #f5a97f">1</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />            self<span style="color: #8bd5ca">.</span>counter <span style="color: #8bd5ca">=</span> res<span style="color: #939ab7">;</span><br />        <span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>逻辑很简单, 结构体 <code class="font-semibold text-[#aa8bd5]"><code>App</code></code> 里装着随应用运行而可能被改变的状态, 除此以外, 我们还定义了一些方法来修改这些状态<br />比如 <code class="font-semibold text-[#aa8bd5]"><code>quit()</code></code> 会让 <code class="font-semibold text-[#aa8bd5]"><code>running</code></code> 变成 false, 以此来退出程序<br />比如 <code class="font-semibold text-[#aa8bd5]"><code>inc()/dec()</code></code> 会让要显示的数字的值 +1/-1, 并保证处于 0..=255 的范围内不产生溢出<br /><br />你可能会问, <code class="font-semibold text-[#aa8bd5]"><code>tick()</code></code> 这玩意是干啥的? 空方法有啥用?<br /><br />在这之前, 你需要了解下 Tick 的概念, 其意思是时钟秒针的滴答声, 用来表示时间的最小化单位<br />现实世界中目前可观测到的时间的最小单位是普朗克时间, 但一个运行在计算机里面的应用肯定不能这么算啊<br /><br />举个例子, 在著名的MMO类型游戏, Screeps 中, 游戏的基本时间单位就叫 tick<br />所有玩家的代码会在同一时间并行执行, 随后以最后一份代码执行的结束, 代表着这一 tick 的结束<br />再举个例子, 在大部分枪战fps游戏中, 也有 tick 这个概念, 代表每秒钟可以刷新多少次<br /><br />在该模板项目中, 会在一个设定好的时间如 200ms 后, 尝试着捕获一次终端事件, 若什么事件也没, 那就分发一个 Event::Tick 给我们的处理程序<br />在处理程序中, 当接受到 Tick 事件时, 我们返回一个 (), 以此来无视它, 状态的变化啊, 视图的更改啊什么的, 也就根本不会发生<br /><br />这里的 <code class="font-semibold text-[#aa8bd5]"><code>tick()</code></code> 方法, 也就是我们对 <code class="font-semibold text-[#aa8bd5]"><code>Event::Tick</code></code> 事件的处理函数啦! 函数体是空的也就表示着无视它哦<br /></p><h2 class="w-fit my-6" id="chu-li-cheng-xu"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#chu-li-cheng-xu"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">处理程序</span></a></h2><p>讲完了 <code class="font-semibold text-[#aa8bd5]"><code>app.rs</code></code> 中 <em>状态的保存</em> 与 <em>状态的更改</em> 之后, 我们会来看下 <code class="font-semibold text-[#aa8bd5]"><code>handler.rs</code></code>, 即对事件的处理部分:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/handler.rs</span><br /><span style="color: #c6a0f6">use</span> <span style="color: #c6a0f6">crate</span><span style="color: #8bd5ca">::</span>app<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span>App<span style="color: #939ab7">,</span> AppResult<span style="color: #939ab7">}</span><span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> crossterm<span style="color: #8bd5ca">::</span>event<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span>KeyCode<span style="color: #939ab7">,</span> KeyEvent<span style="color: #939ab7">,</span> KeyModifiers<span style="color: #939ab7">}</span><span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Handles the key events and updates the state of [`App`].</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">handle_key_events</span><span style="color: #939ab7">(</span>key_event<span style="color: #939ab7">:</span> KeyEvent, app<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> App<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> AppResult<span style="color: #8bd5ca">&lt;</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">match</span> key_event<span style="color: #8bd5ca">.</span>code <span style="color: #939ab7">{</span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> Exit application on `ESC` or `q`</span><br />        KeyCode<span style="color: #8bd5ca">::</span>Esc <span style="color: #8bd5ca">|</span> KeyCode<span style="color: #8bd5ca">::</span>Char<span style="color: #939ab7">(</span><span style="color: #a6da95">'</span><span style="color: #a6da95">q</span><span style="color: #a6da95">'</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><br />            app<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">quit</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />        <span style="color: #939ab7">}</span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> Exit application on `Ctrl-C`</span><br />        KeyCode<span style="color: #8bd5ca">::</span>Char<span style="color: #939ab7">(</span><span style="color: #a6da95">'</span><span style="color: #a6da95">c</span><span style="color: #a6da95">'</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">|</span> KeyCode<span style="color: #8bd5ca">::</span>Char<span style="color: #939ab7">(</span><span style="color: #a6da95">'</span><span style="color: #a6da95">C</span><span style="color: #a6da95">'</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><br />            <span style="color: #c6a0f6">if</span> key_event<span style="color: #8bd5ca">.</span>modifiers <span style="color: #8bd5ca">==</span> KeyModifiers<span style="color: #8bd5ca">::</span>CONTROL <span style="color: #939ab7">{</span><br />                app<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">quit</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />            <span style="color: #939ab7">}</span><br />        <span style="color: #939ab7">}</span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> Counter handlers</span><br />        KeyCode<span style="color: #8bd5ca">::</span>Right <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><br />            app<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">increment_counter</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />        <span style="color: #939ab7">}</span><br />        KeyCode<span style="color: #8bd5ca">::</span>Left <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><br />            app<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">decrement_counter</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />        <span style="color: #939ab7">}</span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> Other handlers you could add here.</span><br />        <span style="color: #8bd5ca">_</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">}</span><br />    <span style="color: #eed49f">Ok</span><span style="color: #939ab7">(</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p><code class="font-semibold text-[#aa8bd5]"><code>crossterm</code></code> 是一个用于操作终端的跨平台库, 提供了一些抽象与封装, 比如 <code class="font-semibold text-[#aa8bd5]"><code>KeyEvent</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">KeyEvent</span> <span style="color: #939ab7">{</span><br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> The key itself.</span><br />    <span style="color: #c6a0f6">pub</span> code<span style="color: #939ab7">:</span> KeyCode,<br />    <span style="color: #939ab7">///</span><span style="color: #939ab7"> Additional key modifiers.</span><br />    <span style="color: #c6a0f6">pub</span> modifiers<span style="color: #939ab7">:</span> KeyModifiers,<br /><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ......</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ......</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ......</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>code</code></code>: 表示你按下的比如字母啊数字啊这种</li><li><code class="font-semibold text-[#aa8bd5]"><code>modifiers</code></code>: 表示修饰键, 如 Shift/Ctrl/Alt/Super (windows里的图标键, 或macos里的cmd键)</li></ul><p><br />顺带一提, 类似的终端操作库还有:<br /><br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>termion</code></code>: 不跨平台, 仅限linux</li><li><code class="font-semibold text-[#aa8bd5]"><code>termwiz</code></code>: wezterm 的配套终端操作库, 有很多高级特性 + 跨终端, 但文档少而且api有亿点难用</li></ul><p><br />ratatui-rs 对其都有适配与支持, 比如当你如果想使用 termwiz + ratatui, 可以这样:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="toml">tui <span style="color: #939ab7">=</span> <span style="color: #939ab7">{</span> package <span style="color: #939ab7">=</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">ratatui</span><span style="color: #a6da95">"</span><span style="color: #939ab7">,</span> version <span style="color: #939ab7">=</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">0.24</span><span style="color: #a6da95">"</span><span style="color: #939ab7">,</span> default_features <span style="color: #939ab7">=</span> false<span style="color: #939ab7">,</span> features <span style="color: #939ab7">=</span> <span style="color: #939ab7">[</span><span style="color: #a6da95">"</span><span style="color: #a6da95">crossterm</span><span style="color: #a6da95">"</span><span style="color: #939ab7">,</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">macros</span><span style="color: #a6da95">"</span><span style="color: #939ab7">]</span> <span style="color: #939ab7">}</span><br />termwiz <span style="color: #939ab7">=</span> <span style="color: #939ab7">{</span> version <span style="color: #939ab7">=</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">0.20.0</span><span style="color: #a6da95">"</span><span style="color: #939ab7">,</span> features <span style="color: #939ab7">=</span> <span style="color: #939ab7">[</span><span style="color: #a6da95">"</span><span style="color: #a6da95">use_image</span><span style="color: #a6da95">"</span><span style="color: #939ab7">]</span> <span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>本系列都将使用 <code class="font-semibold text-[#aa8bd5]"><code>crossterm</code></code>, 因为资料多文档全嘛<br /><br />位于 <code class="font-semibold text-[#aa8bd5]"><code>handler.rs</code></code> 中的代码很好理解, 不过你可能还会再问:<br />实际的处理程序, 好像就是 <code class="font-semibold text-[#aa8bd5]"><code>app.rs</code></code> 里面的方法啊?<br />那能不能取消这个模块, 全装到 <code class="font-semibold text-[#aa8bd5]"><code>App</code></code> 里面去呢?<br /><br />刑, 当然可刑, 只是耦合度太高了, 不能想现在这样一目了然<br /><br />你想啊, 如果你全装到 <code class="font-semibold text-[#aa8bd5]"><code>app.rs</code></code> 里面去, 本来只需要管理状态, 对状态进行保存与更改<br />但现在就得与其他模块, 比如 <code class="font-semibold text-[#aa8bd5]"><code>event.rs</code></code> 接轨打交道, 接受分发过来的事件并匹配相应的处理函数<br />耦合度太高了! 各种事情粘在一起, 耦合在一起, 复杂啊!<br /><br />因此, <code class="font-semibold text-[#aa8bd5]"><code>handler.rs</code></code> 是必不可少的, 其作用就像是网页中的路由那样, 调用着 <code class="font-semibold text-[#aa8bd5]"><code>app.rs</code></code> 中改变状态的方法, 降低了耦合度<br /><br /><em>注意</em>: 此处仅处理按键事件, 这也是大多数 tui 应用会处理的唯一事件<br />你没有看见 <code class="font-semibold text-[#aa8bd5]"><code>app::tick()</code></code>, 是因为 <code class="font-semibold text-[#aa8bd5]"><code>Event::Tick</code></code> 不是按键事件, 自然没有在处理按键的相应函数中看见<br />在 <code class="font-semibold text-[#aa8bd5]"><code>main.rs</code></code> 中, 对全部终端事件的处理是这样的 (后面会讲) :<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/main.rs</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> Handle events.</span><br />    <span style="color: #c6a0f6">match</span> tui<span style="color: #8bd5ca">.</span>events<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span> <span style="color: #939ab7">{</span><br />        Event<span style="color: #8bd5ca">::</span>Tick <span style="color: #8bd5ca">=&gt;</span> app<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">tick</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br />        Event<span style="color: #8bd5ca">::</span>Key<span style="color: #939ab7">(</span>key_event<span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #8aadf4">handle_key_events</span><span style="color: #939ab7">(</span>key_event<span style="color: #939ab7">,</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> app<span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span><span style="color: #939ab7">,</span><br />        Event<span style="color: #8bd5ca">::</span>Mouse<span style="color: #939ab7">(</span><span style="color: #8bd5ca">_</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><span style="color: #939ab7">}</span><br />        Event<span style="color: #8bd5ca">::</span>Resize<span style="color: #939ab7">(</span><span style="color: #8bd5ca">_</span><span style="color: #939ab7">,</span> <span style="color: #8bd5ca">_</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><h2 class="w-fit my-6" id="shi-tu-xuan-ran"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#shi-tu-xuan-ran"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">视图渲染</span></a></h2><p>下面的代码渲染了一个组件 <code class="font-semibold text-[#aa8bd5]"><code>Paragraph</code></code>, 将 <code class="font-semibold text-[#aa8bd5]"><code>app</code></code> 里面的 <em>状态</em>, 即 <code class="font-semibold text-[#aa8bd5]"><code>app.counter</code></code> 放上去显示<br />因为 <code class="font-semibold text-[#aa8bd5]"><code>ratatui-rs</code></code> 是 即时模式 的渲染策略, 所以用起来会比较简单, 当按下按键后 <code class="font-semibold text-[#aa8bd5]"><code>counter</code></code> 加减, 视图会因为重渲染自己更新<br /><br />根据其文档介绍, 它会在每一个新帧渲染所有 UI<br />这虽然为丰富的交互式 UI 提供了极大的灵活性，但也可能会因高度动态的内容而带来开销<br />(根据这份README所说, 实际上鉴于Rust的速度, 开销一般来自于终端, 而不是库本身)<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/ui.rs</span><br /><span style="color: #c6a0f6">use</span> tui<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span><br />    backend<span style="color: #8bd5ca">::</span>Backend<span style="color: #939ab7">,</span><br />    layout<span style="color: #8bd5ca">::</span>Alignment<span style="color: #939ab7">,</span><br />    style<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span>Color<span style="color: #939ab7">,</span> Style<span style="color: #939ab7">}</span><span style="color: #939ab7">,</span><br />    widgets<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span>Block<span style="color: #939ab7">,</span> BorderType<span style="color: #939ab7">,</span> Borders<span style="color: #939ab7">,</span> Paragraph<span style="color: #939ab7">}</span><span style="color: #939ab7">,</span><br />    Frame<span style="color: #939ab7">,</span><br /><span style="color: #939ab7">}</span><span style="color: #939ab7">;</span><br /><br /><span style="color: #c6a0f6">use</span> <span style="color: #c6a0f6">crate</span><span style="color: #8bd5ca">::</span>app<span style="color: #8bd5ca">::</span>App<span style="color: #939ab7">;</span><br /><br /><span style="color: #939ab7">///</span><span style="color: #939ab7"> Renders the user interface widgets.</span><br /><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">render</span><span style="color: #8bd5ca">&lt;</span>B<span style="color: #939ab7">:</span> Backend<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>app<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> App, frame<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> Frame<span style="color: #8bd5ca">&lt;</span>B<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> This is where you add new widgets.</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> See the following resources:</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> - https://docs.rs/ratatui/latest/ratatui/widgets/index.html</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> - https://github.com/tui-rs-revival/ratatui/tree/master/examples</span><br />    frame<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">render_widget</span><span style="color: #939ab7">(</span><br />        Paragraph<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span>format!<span style="color: #939ab7">(</span><br />            <span style="color: #a6da95">"</span><span style="color: #a6da95">This is a tui template.</span><span style="color: #f5bde6">\n</span><span style="color: #939ab7">\</span><br /><span style="color: #a6da95">                Press `Esc`, `Ctrl-C` or `q` to stop running.</span><span style="color: #f5bde6">\n</span><span style="color: #939ab7">\</span><br /><span style="color: #a6da95">                Press left and right to increment and decrement the counter respectively.</span><span style="color: #f5bde6">\n</span><span style="color: #939ab7">\</span><br /><span style="color: #a6da95">                Counter: </span><span style="color: #a6da95">{}</span><span style="color: #a6da95">"</span><span style="color: #939ab7">,</span><br />            app<span style="color: #8bd5ca">.</span>counter<br />        <span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />        <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">block</span><span style="color: #939ab7">(</span><br />            Block<span style="color: #8bd5ca">::</span>default<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><br />                <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">title</span><span style="color: #939ab7">(</span><span style="color: #a6da95">"</span><span style="color: #a6da95">Template</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><br />                <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">title_alignment</span><span style="color: #939ab7">(</span>Alignment<span style="color: #8bd5ca">::</span>Center<span style="color: #939ab7">)</span><br />                <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">borders</span><span style="color: #939ab7">(</span>Borders<span style="color: #8bd5ca">::</span>ALL<span style="color: #939ab7">)</span><br />                <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">border_type</span><span style="color: #939ab7">(</span>BorderType<span style="color: #8bd5ca">::</span>Rounded<span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br />        <span style="color: #939ab7">)</span><br />        <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">style</span><span style="color: #939ab7">(</span>Style<span style="color: #8bd5ca">::</span>default<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">.</span><span style="color: #8aadf4">fg</span><span style="color: #939ab7">(</span>Color<span style="color: #8bd5ca">::</span>Cyan<span style="color: #939ab7">)</span><span style="color: #8bd5ca">.</span><span style="color: #8aadf4">bg</span><span style="color: #939ab7">(</span>Color<span style="color: #8bd5ca">::</span>Black<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />        <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">alignment</span><span style="color: #939ab7">(</span>Alignment<span style="color: #8bd5ca">::</span>Center<span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br />        frame<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">size</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br />    <span style="color: #939ab7">)</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><h2 class="w-fit my-6" id="shi-jian-bu-huo"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#shi-jian-bu-huo"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">事件捕获</span></a></h2><p>接下来, 我们将学习 event.rs 里的代码, 它们之后基本不会更改<br /><br />在这里, 我们定义了自己的 <code class="font-semibold text-[#aa8bd5]"><code>Event</code></code> 枚举, 并且其变体包装了来自 <code class="font-semibold text-[#aa8bd5]"><code>crossterm</code></code> 库的一些事件<br />当我们使用 <code class="font-semibold text-[#aa8bd5]"><code>event::poll</code></code> 来捕获事件时, 捕获的事件, 被封装成了我们自己定义的 <code class="font-semibold text-[#aa8bd5]"><code>Event</code></code> 枚举, 方便传递给程序的其他部分进行处理<br />这里使用了 <code class="font-semibold text-[#aa8bd5]"><code>mpsc-channel</code></code> 来处理事件的发送与接受, 即多生产者与单消费者模型, 不熟悉的可以去看一下 rust 的官方教程<br /><br />你会看见这样一份代码:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">let</span> timeout <span style="color: #8bd5ca">=</span> tick_rate<br />    <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">checked_sub</span><span style="color: #939ab7">(</span>last_tick<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">elapsed</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br />    <span style="color: #8bd5ca">.</span><span style="color: #8aadf4">unwrap_or</span><span style="color: #939ab7">(</span>tick_rate<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>上面的代码具有什么样的含义呢?<br /><br />答:<br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>tick_rate</code></code> 代表了一个 tick 的具体时间, <code class="font-semibold text-[#aa8bd5]"><code>timeout</code></code> 顾名思义代表了后面 <code class="font-semibold text-[#aa8bd5]"><code>event::poll</code></code> 应该等待多久, 超时了自然就结束</li><li><code class="font-semibold text-[#aa8bd5]"><code>checked_sub</code></code> 表示了一个 tick_rate, 经历了 <code class="font-semibold text-[#aa8bd5]"><code>last_tick.elapsed()</code></code> 之后还剩下的时间, 以此作为 <code class="font-semibold text-[#aa8bd5]"><code>timeout</code></code></li></ul><p><br />如果流逝的时间要比一个 tick 大, 这里选择了将一个 <code class="font-semibold text-[#aa8bd5]"><code>tick_rate</code></code> 作为 <code class="font-semibold text-[#aa8bd5]"><code>timeout</code></code> 来使用<br /></p><h2 class="w-fit my-6" id="zhong-duan-she-zhi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#zhong-duan-she-zhi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">终端设置</span></a></h2><p>我们创建了一个叫做 <code class="font-semibold text-[#aa8bd5]"><code>TUI</code></code> 的结构体, 它代表了你的 Terminal-User-Interface<br />其有两个成员, 一个代表你的终端, 一个代表了先前的 <code class="font-semibold text-[#aa8bd5]"><code>EventHandler</code></code><br /><br />你当然能直接使用 <code class="font-semibold text-[#aa8bd5]"><code>EventHandler</code></code>, 而不是将其作为 <code class="font-semibold text-[#aa8bd5]"><code>TUI</code></code> 的成员来使用, 只是这里仅仅作了一个抽象与包装而已<br />毕竟, 在该模板项目中, <code class="font-semibold text-[#aa8bd5]"><code>EventHandler</code></code> 仅仅出现了三次, 一次是其自己的定义, 一次是它作为 TUI 成员的定义<br />还有一次是其在 <code class="font-semibold text-[#aa8bd5]"><code>main</code></code> 中被创建, 然后传递给 <code class="font-semibold text-[#aa8bd5]"><code>TUI</code></code> 用作初始化 (笑<br /><br /><code class="font-semibold text-[#aa8bd5]"><code>init</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>exit</code></code> 分别对应了当应用开始时的初始设置, 与结束时的清理收尾工作<br /><br />这里大多顾名思义, 比如 AlternateScreen 表示 tui 应用的渲染应该发生在 “另一张新的画布上”, 避免破坏原来的界面<br />当你结束程序时, 退出了 “新画布”, 你的渲染都是发生在 “新画布” 上, 自然不会影响原来<br /><br />你会发现在 <code class="font-semibold text-[#aa8bd5]"><code>init</code></code> 和 <code class="font-semibold text-[#aa8bd5]"><code>exit/reset</code></code> 中, <code class="font-semibold text-[#aa8bd5]"><code>crossterm::execute!</code></code> 是针对 <code class="font-semibold text-[#aa8bd5]"><code>io::stderr()</code></code> 的, 为何不用 <code class="font-semibold text-[#aa8bd5]"><code>io::stdout()</code></code> 呢?<br />这是因为我们想在 stderr 中进行 ui 的渲染, 而程序的输出则放到 stdout, 这样有利于通过 <em>管道(pipeline)</em>, 让输出传递给其他程序<br /><br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="zhong-duan-gai-nian"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#zhong-duan-gai-nian"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">终端概念</span></a></h1><p>有些人可能不太了解什么是 raw_mode, 什么是 pipeline, 分不清 stdout 与 stderr, 所以我会多说明下这些概念<br /><br /><em>注意</em>:<br />这些概念已经尽量简化过了, 因为写个 tui 程序不必太深入, 我也不知道我讲的够不够简洁明了, 见谅<br /></p><h2 class="w-fit my-6" id="yuan-shi-mo-shi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#yuan-shi-mo-shi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">原始模式</span></a></h2><p>你可以观看 <a class="underline underline-offset-5 font-medium" href="https://www.gnu.org/software/libc/manual/html_node/Canonical-or-Not.html">来自 gnu 官网的说明</a>, 里面有对此的解释:<br /><br />在 POSIX 系统中, 有着两种输入模式: <em>canonical</em> 或者 <em>noncanonical</em><br />终端 IO 存在着这两种主要的模式:<br /><br /></p><ul class="list-disc ml-5"><li><em>canonical</em>: 规范模式, 也叫作 cooked-mode, 是最常见的模式<br /></li></ul><p>在该模式下, 会以行为单位, 读取输入(read函数), 在终端输入的字符被保存在缓冲区中<br />当输入行结束符(换行/EOF)时, 缓冲区的内容才会被发送到对应的处理程序<br />特殊字符不会被无视, 换行符也会像普通字符一样被缓冲区接收, 但 EOF 不会<br /><br /></p><ul class="list-disc ml-5"><li><em>nocanonical</em>: 非规范模式, 也叫作 raw-mode, 也是非常常见的模式<br /></li></ul><p>类似 ERASE 与 KILL 这些特殊的编辑字符会被禁用, 每次输入都会读取, 而不再是基于 line 为单位<br />比如 vim, 或者我现在正在使用的 helix-editor, 就处于该模式下, 方便程序捕获并独占你的每份输入, 方便处理<br /><br />ratatui 中位于 <code class="font-semibold text-[#aa8bd5]"><code>into_raw_mode</code></code> 的文档, 对于原始模式下的输入的描述如下:<br /></p><blockquote class="border-l-4 border-solid border-gray-300 mx-1 my-3 px-4 opacity-60">原始模式(raw-mode), 意味着你所输入的标准输入不会被打印/不会显示在屏幕上(它必须由程序手动编写)<br />此外, 输入不是 canonical 或 buffered 的, 也就是说, 您可以一次读取一个字节</blockquote><p><br />简单来说, 原始模式让我们可以逐一捕获用户的输入, 便于对其进行处理<br />并且禁用且无视了特殊的字符, 进一步增强了我们程序的权能与对终端的掌控权限<br />(想想 vim 的操作, 再想想你在 bash 输入命令, 对比一下两者的区别)<br /></p><h2 class="w-fit my-6" id="wen-jian-miao-shu-fu"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#wen-jian-miao-shu-fu"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">文件描述符</span></a></h2><p>在 Linux 系统中, 万物皆文件, 不管是进程也好, 还是你的设备也好, 都是文件, 且有一个对应的文件描述符(file descriptor)<br />这个文件描述符, 可以看作是系统为了追踪打开的文件而分配的唯一标号, 通过它对文件进行读写<br /><br />Linux 在启动时, 会创建一个 init 进程, 此时自动创建 3 个特殊的文件描述符, 对应 3 个设备IO文件:<br /></p><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><tr><td>文件</td><td>含义</td><td>描述符</td></tr><tr><td>/dev/stdin</td><td>标准输入</td><td>0</td></tr><tr><td>/dev/stdout</td><td>标准输出</td><td>1</td></tr><tr><td>/dev/stderr</td><td>标准错误</td><td>2</td></tr></table></div><p>而之后产生的进程, 则都是 init 进程的子进程(一颗多叉树), 子进程会继承父进程的文件描述符<br />因此, 你打开的 shell(bash, zsh, fish, nushell等), 因为是子进程, 自然会有这三个文件描述符<br /><br />简单理解:<br /></p><ul class="list-disc ml-5"><li>stdin 对应的是键盘, 打字时的信息会输出到 /dev/stdin, stdin 与 stderr 都对应屏幕</li><li>虽然 stdout/stderr 都是输出到屏幕, 但前者有缓冲, 后者无缓冲</li><li>标准输出的缓冲区有个遇见换行会刷新缓冲区的特性<br /></li></ul><p><br />之后的子进程中所打开的文件, 文件描述符则从 3 开始往上递增<br /></p><h2 class="w-fit my-6" id="zhong-ding-xiang"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#zhong-ding-xiang"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">重定向</span></a></h2><p>重定向(redirect), 光听名字就晓得什么意思了, 与网页的重定向一个道理<br />我们的 tui 程序, 就可以使用 管道(pipeline, 重定向的一种) 来跟更多的其他程序进行交互, 之后会讲<br /><br />举个例子, 当你执行程序时, 从 stdin(键盘) 获取输入, 成功则将结果输出到 stdout(屏幕), 失败则将报错输出到 stderr(屏幕) 上<br />这是你没有指定任何重定向时的默认行为, 你会发现 stdout/stderr 都会输出到屏幕上, 极其容易造成混乱<br /><br />让我们用 rust 来进行一点演示, 首先创建项目并跳转<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">cargo new --bin demo<br />cd demo</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/main.rs</span><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">main</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />    println!<span style="color: #939ab7">(</span><span style="color: #a6da95">"</span><span style="color: #a6da95">This is a str, which will be outputted to stdout</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    eprintln!<span style="color: #939ab7">(</span><span style="color: #a6da95">"</span><span style="color: #a6da95">This is a str, which will be outputted to stderr</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>接下来运行它:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># cargo run --quiet<br />This is a str, which will be outputted to stdout<br />This is a str, which will be outputted to stderr</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p><code class="font-semibold text-[#aa8bd5]"><code>println!</code></code> 对应的应该是我们正常的输出, 而 <code class="font-semibold text-[#aa8bd5]"><code>eprintln!</code></code> 应该对应一些报错信息, 可是它们同时出现了<br />这太混乱了, 当向 stdout 与 stderr 大量输出时更是如此, 我们要的是将 <em>正确的输出</em> 与 <em>报错的信息</em> 分开!<br /><br />请对比以下几条条命令(在bash中运行):<br /><br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>cargo run --quiet</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 全部输出到屏幕<br />This is a str, which will be outputted to stdout<br />This is a str, which will be outputted to stderr</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>cargo run --quiet &gt; output.log</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 重定向, 输出到 output.log 中, 默认只重定向 stdout<br />This is a str, which will be outputted to stderr</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>cargo run --quiet 1&gt; output.log</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 指定文件描述符为 1(stdout), 默认行为<br />This is a str, which will be outputted to stderr</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code><span style="white-space: pre-wrap"> </span>cargo run --quiet 2&gt; error.log</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 指定文件描述符为 2(stderr), stderr 的输出存入 error.log<br />This is a str, which will be outputted to stdout</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>简单地了解下就差不多了, 其实还有很多内容, 不过懒得展开了, 知道两者区别就够了<br /><br />本节最后使用 nushell(比bash/zsh等更加现代的shell) 展示一下:<br />(nushell 可以直接帮我们结构化信息, 放上来可以方便小伙伴们理解)<br /><br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>do {cargo run --quiet} | complete</code></code></li></ul><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><tr><td>stdout</td><td>This is a str, which will be outputted to stdout</td></tr><tr><td>stderr</td><td>This is a str, which will be outputted to stderr</td></tr><tr><td>exit_code</td><td>0</td></tr></table></div><p>再来一个例子, 当使用 cat 命令时传入一个不存在的文件:<br /><br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>do {cat non-exist.txt} | complete</code></code></li></ul><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><tr><td>stdout</td><td>This is a str, which will be outputted to stdout</td></tr><tr><td>stderr</td><td>cat: non-exist.txt: No such file or directory</td></tr><tr><td>exit_code</td><td>1</td></tr></table></div><p>而如果用 bash 自然就无法简单地得到如此结构化的数据了, 仅仅只能看见一条简单的消息:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">cat: non-exist.txt: No such file or directory</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><h2 class="w-fit my-6" id="guan-dao"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#guan-dao"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">管道</span></a></h2><p>此处以 bash 中的管道(pipeline)为例<br />管道命令的操作符时 “|”, 形式为 command_1 | command_2, 表示将前者的输出作为后者的输入, 即 stdout -&gt; stdin<br />使用管道时, 两个命令会依次被调用<br /><br />值得注意的有两点:<br /></p><ul class="list-disc ml-5"><li>管道只接收代表着正确的输出, 也就是 stdout 作为后一个命令的输入, 因此无法接受 stderr 的输出</li><li>管道后面的命令必须能够接收 stdin 才行</li></ul><p><br />来点例子, 假设存在这么一个文件 README.md:<br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>cat README.md | wc -m</code></code><br /></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 当 cat 向 stdout 输出时被管道传走, 屏幕上不显示被传走的内容<br />57</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>cat REDME.md | wc -m</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 当 cat 向 stderr 输出时无法被传递, 屏幕上显示错误消息, 且 wc 的 stdin 为空<br />cat: REDM.m: No such file or directory<br />0</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>cat README.md | ls</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text"># 即使 cat 输出至 stdout, 但 ls 不支持 stdin, 屏幕上不显示前者结果, 数据被丢弃了<br />Documents  Downloads  Music  Pictures  Videos  Trash</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p><em>管道与重定向的区别</em>:<br /></p><ul class="list-disc ml-5"><li>重定向是发生在一个进程内的, 而管道则产生了两个进程来执行两个命令</li><li>重定向的 “&gt;”, 这个箭头指向的地方必须是一个文件, 所以右边得是文件, 同理 “&lt;” 左边得是文件</li></ul><p><br /><em>管道在 tui 程序中的常见用途</em>:<br />假设我们的 tui 程序, 想在执行的时候将结果交给外部的命令, 我们就可以通过管道来支持这一行为<br />比如, 我们做了一个超级小的终端文件浏览器demo, 类似 ranger/nnn/xplr/yazi, 在选择文件按下回车后, 能获得其 path<br />假设这个程序叫作 file_chooser, 我们想将获取的路径传递给其他程序, 类似这样:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">file_chooser | vim</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>其获取的文件路径, 通过管道传递给了 vim, 然后可以在 vim 中编辑这个文件<br /><br />但请注意, 我们的 file_chooser 是 tui 程序, 也是一堆字符所组成的, 如果你让这些字符(ui), 渲染输出到了 stdout 中…<br />那通过管道传递的, 可就不止是你真正想传递给外部的文件路径了! 还有你的一大堆 ui 字符!<br /><br />真是可怕啊…不过解决办法非常简单, 你只要在 stderr 中渲染你的 ui 界面就阔以了<br />所以我才在 p2 中提过一嘴, 为什么那个模板是使用了 stderr, 而不是使用 stdout<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="wei-sheng"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#wei-sheng"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">尾声</span></a></h1><p>最后回到我们的 main 函数, 经过前面那么多的铺垫, 我相信你一定可以读懂下面的代码了吧?!<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> src/main.rs</span><br /><span style="color: #c6a0f6">use</span> std<span style="color: #8bd5ca">::</span>io<span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> tui<span style="color: #8bd5ca">::</span>backend<span style="color: #8bd5ca">::</span>CrosstermBackend<span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> tui<span style="color: #8bd5ca">::</span>Terminal<span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> tui_demo<span style="color: #8bd5ca">::</span>app<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span>App<span style="color: #939ab7">,</span> AppResult<span style="color: #939ab7">}</span><span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> tui_demo<span style="color: #8bd5ca">::</span>event<span style="color: #8bd5ca">::</span><span style="color: #939ab7">{</span>Event<span style="color: #939ab7">,</span> EventHandler<span style="color: #939ab7">}</span><span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> tui_demo<span style="color: #8bd5ca">::</span>handler<span style="color: #8bd5ca">::</span>handle_key_events<span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">use</span> tui_demo<span style="color: #8bd5ca">::</span>tui<span style="color: #8bd5ca">::</span>Tui<span style="color: #939ab7">;</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">main</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> AppResult<span style="color: #8bd5ca">&lt;</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> Create an application.</span><br />    <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">mut</span> app <span style="color: #8bd5ca">=</span> App<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> Initialize the terminal user interface.</span><br />    <span style="color: #c6a0f6">let</span> backend <span style="color: #8bd5ca">=</span> CrosstermBackend<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span>io<span style="color: #8bd5ca">::</span>stderr<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">let</span> terminal <span style="color: #8bd5ca">=</span> Terminal<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span>backend<span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">let</span> events <span style="color: #8bd5ca">=</span> EventHandler<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span><span style="color: #f5a97f">250</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">mut</span> tui <span style="color: #8bd5ca">=</span> Tui<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span>terminal<span style="color: #939ab7">,</span> events<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    tui<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">init</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> Start the main loop.</span><br />    <span style="color: #c6a0f6">while</span> app<span style="color: #8bd5ca">.</span>running <span style="color: #939ab7">{</span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> Render the user interface.</span><br />        tui<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">draw</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> app<span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span><span style="color: #939ab7">;</span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> Handle events.</span><br />        <span style="color: #c6a0f6">match</span> tui<span style="color: #8bd5ca">.</span>events<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span> <span style="color: #939ab7">{</span><br />            Event<span style="color: #8bd5ca">::</span>Tick <span style="color: #8bd5ca">=&gt;</span> app<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">tick</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br />            Event<span style="color: #8bd5ca">::</span>Key<span style="color: #939ab7">(</span>key_event<span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #8aadf4">handle_key_events</span><span style="color: #939ab7">(</span>key_event<span style="color: #939ab7">,</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> app<span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span><span style="color: #939ab7">,</span><br />            Event<span style="color: #8bd5ca">::</span>Mouse<span style="color: #939ab7">(</span><span style="color: #8bd5ca">_</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><span style="color: #939ab7">}</span><br />            Event<span style="color: #8bd5ca">::</span>Resize<span style="color: #939ab7">(</span><span style="color: #8bd5ca">_</span><span style="color: #939ab7">,</span> <span style="color: #8bd5ca">_</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">{</span><span style="color: #939ab7">}</span><br />        <span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> Exit the user interface.</span><br />    tui<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">exit</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">?</span><span style="color: #939ab7">;</span><br />    <span style="color: #eed49f">Ok</span><span style="color: #939ab7">(</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>鉴于 ratatui 是个非常简单的库, 讲完它的架构之后, 其实就已经可以开始写项目了<br />所以之后就稍微讲下用 ratatui 实现的小项目吧, 像是自定义组件, 处理用户输入等内容, 则会搭配着这些项目来说明<br /><br />谢谢观看!<br /></p></div><script src="/.tola/spa-dac8115c.js" data-tola-generated></script></body><!-- tola:hash:df32d6adbb1cb9b8:4bbcbcafd87c79ba -->
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><script> </script><meta name="description" content="柳上川的博客" /><link rel="shortcut icon" href="/images/blog/avatar.avif?v=fbfd372d" type="image/x-icon" /><link rel="stylesheet" href="/fonts/SmileNerdFontMono-Regular/result.css?v=568803a4" /><link rel="stylesheet" href="/iconfonts/iconfont.css?v=db1a2290" /><link rel="stylesheet" href="/styles/tailwind.css?v=c46e8b83" /><link rel="stylesheet" href="/.tola/enhance-6b400663.css" /><script src="/scripts/site/core.js?v=44a2d3bb"></script><script src="/scripts/site/summaries.js?v=901a190f"></script><script src="/scripts/site/posts.js?v=0022ba72"></script><script src="/scripts/site/tabs.js?v=01ad2f37"></script><script src="/scripts/site/bootstrap.js?v=3ee73fa4"></script><meta name="darkreader-lock"><meta property="og:title" content="GNU Guix 1.3.0 released" /><meta property="og:description" content=" 对官网博客 GNU Guix 1.3.0 released 的翻译 " /><meta property="og:type" content="article" /><meta property="og:site_name" content="柳上川的博客" /><meta property="article:author" content="柳上川" /><meta property="article:section" content="guix" /><meta property="article:published_time" content="2025-07-03" /><meta property="article:tag" content="guix" /><meta property="article:tag" content="translation" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="GNU Guix 1.3.0 released" /><meta name="twitter:description" content=" 对官网博客 GNU Guix 1.3.0 released 的翻译 " /><title>GNU Guix 1.3.0 released | 柳上川的博客</title></head><body><div id="content" class="flex flex-col mx-4 mb-20 scroll-smooth" lang="zh-Hans"><div class="text-2xl sm:text-3xl my-4 w-full text-center">『GNU Guix 1.3.0 released』</div><div class="mx-auto mb-5 flex max-w-full flex-wrap items-center justify-center gap-2 px-2 text-center"><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-sky-700/90 text-slate-200">2025-07-03</span><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-slate-600/90 text-slate-300">柳上川</span><span class="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold leading-none text-slate-300 sm:text-[0.95rem]"><span class="text-slate-500">in</span> <a class="text-slate-300 underline decoration-sky-500/70 underline-offset-4 transition-colors hover:text-sky-200 hover:decoration-sky-300" href="/posts/guix">guix</a></span></div><div class="mx-auto my-5 flex w-fit max-w-full flex-col items-center gap-2 px-2 text-center"><div class="text-base font-semibold text-slate-300">摘要</div><div class="w-fit max-w-full text-base leading-7 text-slate-200">对官网博客 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/blog/2021/gnu-guix-1.3.0-released/">GNU Guix 1.3.0 released</a> 的翻译</div></div><div class="flex flex-col my-10 w-fit border-2 border-slate-500"><p><span class="text-2xl">目录:</span></p><div class="w-fit pr-2 my-2"><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">┌─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#yong-hu-ti-yan">用户体验</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#kai-fa-zhe-gong-ju">开发者工具</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#xing-neng">性能</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#power9,-bao-,-fu-wu-,-yi-ji-geng-duo">POWER9, 包, 服务, 以及更多</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">└─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#shi-shi-kan">试试看</a></span></div></div></div><figure class="sm:w-[45%] mx-auto mt-8 mb-3 w-full px-2 text-center"><div class="bg-[#171816] border-[3px] border-slate-500/80 p-2 sm:p-3 shadow-[0_6px_14px_rgba(0,0,0,0.32)]"><img class="mx-auto block w-full border border-slate-700 bg-[#111210] tola-nobg" src="https://guix.gnu.org/static/blog/img/test-pilot.png" /></div></figure><p>我们很高兴宣布 GNU Guix 1.3.0 的发布!</p><p>本次发行包含:</p><ul class="list-disc ml-5"><li><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/System-Installation.html">ISO-9660 安装镜像</a></li><li><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Running-Guix-in-a-VM.html">虚拟机镜像</a></li><li>可在现有 GNU/Linux 发行版上安装包管理器的 tar 包, 既可以 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Requirements.html">从源码安装</a>, 也可以 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Binary-Installation.html">从二进制安装</a></li></ul><p>Guix 用户可以通过 <code class="font-semibold text-[#aa8bd5]"><code>guix pull</code></code> 完成更新</p><p>距离上个版本已过去将近 6 个月, 期间有 212 位贡献者提交了代码与软件包, 还有许多人参与了 code review, 系统维护, 翻译, 网站更新, Outreachy mentoring 等其他重要工作</p><p>在这段时间里, 仓库新增了 8300 多次提交, 下面我们会尽量简明地概括其中最值得注意的变化</p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="yong-hu-ti-yan"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#yong-hu-ti-yan"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">用户体验</span></a></h1><p>Guix 的一个鲜明特性是对 declarative deployment 的支持<br />与其不断执行 <code class="font-semibold text-[#aa8bd5]"><code>guix install</code></code> 和 <code class="font-semibold text-[#aa8bd5]"><code>guix remove</code></code>, 你也可以使用 <code class="font-semibold text-[#aa8bd5]"><code>guix package --manifest=manifest.scm</code></code>, 在 <code class="font-semibold text-[#aa8bd5]"><code>manifest.scm</code></code> 中声明你想安装的软件, 例如:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="scm"><span style="color: #939ab7">;;</span><span style="color: #939ab7"> This is 'manifest.scm'.</span><br /><span style="color: #939ab7">(</span><span style="color: #8aadf4">specifications-&gt;manifest</span><br />  <span style="color: #939ab7">(</span><span style="color: #8aadf4">list</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">emacs</span><span style="color: #a6da95">"</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">guile</span><span style="color: #a6da95">"</span> <span style="color: #a6da95">"</span><span style="color: #a6da95">gcc-toolchain</span><span style="color: #a6da95">"</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这样会精确安装文件中列出的那些包, 你可以把它纳入版本控制并分享给其他人<br />过去用户需要手写 manifest, 这虽然不算困难, 但对刚想转向 declarative model 的人来说始终是个门槛</p><p>新的 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-package.html"><code class="font-semibold text-[#aa8bd5]"><code>guix package --export-manifest</code></code></a> 命令, 以及配套的 <code class="font-semibold text-[#aa8bd5]"><code>--export-channels</code></code>, 现在可以基于 <em>现有 profile</em> 的内容自动生成 manifest<br />这让用户更容易从 “按需运行 <code class="font-semibold text-[#aa8bd5]"><code>guix install</code></code>” 的 imperative model, 过渡到更加正式的 declarative model, 这项能力大家已经期待很久了</p><p>喜欢第一时间尝鲜自由软件最新上游版本的用户, 应该会很喜欢新的 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Package-Transformation-Options.html"><code class="font-semibold text-[#aa8bd5]"><code>--with-latest</code></code> package transformation option</a><br />它复用了 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-refresh.html"><code class="font-semibold text-[#aa8bd5]"><code>guix refresh</code></code></a> 的那套逻辑, 会查找某个包的最新 upstream release, 下载, 认证并尝试构建它<br />这在新版本还没被 Guix 打包时尤其有用, 例如下面的命令会尝试安装更高版本的 QEMU:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">$</span> guix install qemu<span style="color: #939ab7"> --</span>with-latest<span style="color: #8bd5ca">=</span>qemu<br /><span style="color: #8aadf4">The</span> following package will be upgraded:<br />  <span style="color: #8aadf4">qemu</span> 5.2.0 -<span style="color: #8bd5ca">&gt;</span> <span style="color: #f5a97f">6</span>.0.0<br /><span style="color: #8aadf4">...</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>当然这并不保证一定成功, 如果新版本改了构建系统, 或引入了当前 Guix 配方里没有声明的新依赖, 构建仍可能失败<br />但它给了用户额外的灵活性, 对开发者来说也能快速检查某个软件包是否能在其依赖的最新版之上顺利构建</p><p>为了改善整体体验, 还有不少零散但重要的打磨<br />例如新增了 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/devel/en/html_node/Common-Build-Options.html"><code class="font-semibold text-[#aa8bd5]"><code>--verbosity</code></code></a> 级别, 默认 <code class="font-semibold text-[#aa8bd5]"><code>--verbosity=1</code></code> 会减少下载阶段输出的细节, 更符合大多数用户的预期</p><p>另一个实用改进是输入错误时的自动建议:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="text">$ guix package --export-manifests<br />guix package: error: export-manifests: unrecognized option<br />hint: Did you mean `export-manifest'?<br /><br />$ guix remve vim<br />guix: remve: command not found<br />hint: Did you mean `remove'?</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>如果你正在通过 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Daemon-Offload-Setup.html">SSH 配置 build offloading</a>, 也会发现流程更简单了<br />目标机器不再需要把 <code class="font-semibold text-[#aa8bd5]"><code>guile</code></code> 可执行文件放进 <code class="font-semibold text-[#aa8bd5]"><code>PATH</code></code> 并额外配置 <code class="font-semibold text-[#aa8bd5]"><code>GUILE_LOAD_PATH</code></code>, 现在 offloading 会统一通过 <code class="font-semibold text-[#aa8bd5]"><code>guix repl</code></code> 完成相应操作</p><p>Guix 参考手册如今已完整翻译为 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/fr/html_node/">法语</a>, <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/de/html_node/">德语</a> 与 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/es/html_node/">西班牙语</a>, 另有 <a class="underline underline-offset-5 font-medium" href="https://translate.fedoraproject.org/projects/guix/documentation-manual/">更多语言的初步翻译</a>, 包括 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/ru/html_node/">俄语</a> 与 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/zh-cn/html_node/">中文</a><br />Guix 自身也已完整翻译为法语, 德语与斯洛伐克语, 并在近 20 种语言上提供部分翻译<br />所有翻译工作现在都通过 <a class="underline underline-offset-5 font-medium" href="https://translate.fedoraproject.org/projects/guix/">Weblate</a> 管理, 也欢迎你 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/devel/en/html_node/Translating-Guix.html">参与</a></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="kai-fa-zhe-gong-ju"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#kai-fa-zhe-gong-ju"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">开发者工具</span></a></h1><p>对 packager 来说也有不少好消息<br />首先, <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-import.html"><code class="font-semibold text-[#aa8bd5]"><code>guix import</code></code></a> 新增了 Go 的递归 importer, 可以为整批 Go 包生成 package definition 或模板<br />与此同时, 面向 Rust 包的 <code class="font-semibold text-[#aa8bd5]"><code>guix import crate</code></code> 在递归模式下也开始遵循 “semantic versioning”</p><p><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-refresh.html"><code class="font-semibold text-[#aa8bd5]"><code>guix refresh</code></code></a> 现在包含新的 updater: <code class="font-semibold text-[#aa8bd5]"><code>sourceforge</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>generic-html</code></code><br />前者用于托管在 SourceForge 上的软件, 后者则会扫描软件主页来检测更新, 这显著扩大了 <code class="font-semibold text-[#aa8bd5]"><code>guix refresh</code></code> 的覆盖范围</p><p>开发者还会喜欢新的 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Package-Transformation-Options.html"><code class="font-semibold text-[#aa8bd5]"><code>--with-patch</code></code></a> 选项, 它允许你在一批软件包的构建过程中, 对其中一个或多个包应用特定 patch</p><p>在 1.2.0 中引入的 <a class="underline underline-offset-5 font-medium" href="https://othacehe.org/the-guix-system-image-api.html">Guix System image API</a> 基础上, <code class="font-semibold text-[#aa8bd5]"><code>guix system vm-image</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>guix system disk-image</code></code> 现在被统一的 <code class="font-semibold text-[#aa8bd5]"><code>guix system image</code></code> 取代<br />例如:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">guix</span> system vm-image<span style="color: #939ab7"> --</span>save-provenance config.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>现在写成:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">guix</span> system image<span style="color: #939ab7"> -</span>t qcow2<span style="color: #939ab7"> --</span>save-provenance config.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>而:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">guix</span> system disk-image<span style="color: #939ab7"> -</span>t iso9660 gnu/system/install.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>现在写成:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">guix</span> system image<span style="color: #939ab7"> -</span>t iso9660 gnu/system/install.scm</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这种统一带来了更好的性能, 因为生成镜像时不再需要先启动一个虚拟机, 底层工作由专门的 <code class="font-semibold text-[#aa8bd5]"><code>genimage</code></code> 工具完成<br />另一个好处是 <code class="font-semibold text-[#aa8bd5]"><code>qcow2</code></code> 镜像现在默认已压缩, 不再需要再通过 <code class="font-semibold text-[#aa8bd5]"><code>xz</code></code> 之类的工具手工做一次后处理<br />如需了解更多, 可阅读 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-system#index-Creating-system-images-in-various-formats"><code class="font-semibold text-[#aa8bd5]"><code>guix system image</code></code> 文档</a></p><p>最后, 新增的 <code class="font-semibold text-[#aa8bd5]"><code>GUIX_EXTENSIONS_PATH</code></code> 搜索路径能让 Guix 扩展, 例如 <a class="underline underline-offset-5 font-medium" href="https://guixwl.org/">Guix Workflow Language</a>, 自动暴露自身的 Guile 模块, 从而显著简化部署流程</p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="xing-neng"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#xing-neng"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">性能</span></a></h1><p>你很可能已经注意到 substitutes 的安装速度变快了, 也就是预构建二进制包的下载速度变快了<br />正如我们此前在 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/blog/2021/getting-bytes-to-disk-more-quickly/">文章</a> 中解释的那样, 这部分得益于对 zstd 压缩的 opportunistic use, 它在解压吞吐上表现出色<br />如今 daemon 与 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-publish.html"><code class="font-semibold text-[#aa8bd5]"><code>guix publish</code></code></a> 也已经支持 zstd, 与 gzip, lzip 并列</p><p>另一个有助于加速 substitutes 获取的改动是 local substitute server discovery<br /><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix_002ddaemon.html"><code class="font-semibold text-[#aa8bd5]"><code>guix-daemon</code></code> 新增的 <code class="font-semibold text-[#aa8bd5]"><code>--discover</code></code> 选项</a> 会通过 Avahi, 利用 mDNS/DNS-SD 协议自动发现并使用局域网内公布的 substitute server<br />类似地, <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Invoking-guix-publish.html"><code class="font-semibold text-[#aa8bd5]"><code>guix publish</code></code> 新增的 <code class="font-semibold text-[#aa8bd5]"><code>--advertise</code></code> 选项</a> 则可把自己广播到局域网中</p><p>在 Guix System 上, 你可以临时执行:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #8aadf4">herd</span> discover guix-daemon on</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>也可以直接在 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Base-Services.html#index-guix_002dconfiguration">系统配置</a> 中长期启用它<br />由于 Guix 具备 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/blog/2017/reproducible-builds-a-status-update/">reproducible builds</a>, 机会式地使用局域网中邻近的 substitute server 是完全安全的</p><p>此外, <a class="underline underline-offset-5 font-medium" href="https://issues.guix.gnu.org/44760#4"><code class="font-semibold text-[#aa8bd5]"><code>guix system init</code></code> 也得到了优化</a>, 这进一步加快了 Guix System 的安装过程</p><p>对一些资源受限的机器来说, 构建 Guix 模块本身就是一笔昂贵开销<br />因此 <code class="font-semibold text-[#aa8bd5]"><code>(guix ci)</code></code> 模块中新加入了 <code class="font-semibold text-[#aa8bd5]"><code>channel-with-substitutes-available</code></code>, 它可以把 Guix 拉到 build farm 已经构建完成的最新提交上<br />具体示例可见 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Channels-with-Substitutes.html">手册</a></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="power9,-bao-,-fu-wu-,-yi-ji-geng-duo"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#power9,-bao-,-fu-wu-,-yi-ji-geng-duo"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">POWER9, 包, 服务, 以及更多</span></a></h1><p>POWER9 现在以 technology preview 的形式获得支持, 这离不开许多人为 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/blog/2021/new-supported-platform-powerpc64le-linux/">移植 Guix 到该平台</a> 所做的不懈努力<br />由于我们的 build farm 上 POWER9 容量仍然有限, 当前可用的 binary substitutes 还不算多, 但如果你愿意从源码构建大量软件, 我们非常期待听到你的实际反馈</p><p>本次发行新增 2000 个软件包, 总数已超过 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/packages">17000</a>, 更新了 3100 个软件包<br />发行版自带 GNU libc 2.31, GCC 10.3, Xfce 4.16.0, Linux-libre 5.11.15, LibreOffice 6.4.7.2 与 Emacs 27.2 等组件<br />在众多打包变化中, 一个格外醒目的亮点是 <a class="underline underline-offset-5 font-medium" href="https://www.freelists.org/post/bootstrappable/Announcing-the-bootstrap-of-OCaml">新的 OCaml bootstrap</a>, 现在 OCaml 可以通过 <a class="underline underline-offset-5 font-medium" href="https://github.com/Ekdohibs/camlboot/">camlboot</a> 完全从源码构建<br />软件更新中还包括 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/blog/2021/cuirass-10-released/">Cuirass 1.0</a>, 也就是驱动我们 <a class="underline underline-offset-5 font-medium" href="https://ci.guix.gnu.org/">build farm</a> 的那套服务</p><p>服务目录同样继续扩展, 新增了 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/VPN-Services.html#index-wireguard_002dservice_002dtype">wireguard</a>, <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Networking-Services.html#index-syncthing">syncthing</a>, <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Networking-Services.html#index-IPFS">ipfs</a>, 以及 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/manual/en/html_node/Continuous-Integration.html">更简单也更方便的 Cuirass 服务</a> 等等<br />你可以通过 <code class="font-semibold text-[#aa8bd5]"><code>guix system search</code></code> 来检索这些服务</p><p>更多值得关注的变化与 bug fix, 请查看 <a class="underline underline-offset-5 font-medium" href="https://git.savannah.gnu.org/cgit/guix.git/tree/NEWS?h=version-1.3.0&amp;id=a0178d34f582b50e9bdbb0403943129ae5b560ff"><code class="font-semibold text-[#aa8bd5]"><code>NEWS</code></code></a></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="shi-shi-kan"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#shi-shi-kan"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">试试看</span></a></h1><p><a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/install.sh">安装脚本</a> 已改进为更适合自动化使用<br />例如如果你赶时间, 现在可以直接运行:</p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="sh"><span style="color: #939ab7">#</span><span style="color: #939ab7"> yes | ./install.sh</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这样便会在没有任何提示的情况下, 直接把 Guix 二进制版本安装到你的系统中</p><p>你也可以试试 <a class="underline underline-offset-5 font-medium" href="https://ftpmirror.gnu.org/gnu/guix/guix-system-vm-image-1.3.0.x86_64-linux.qcow2">Guix System 演示虚拟机镜像</a>, 它现在支持与宿主机共享剪贴板, 还支持通过 SPICE 协议动态调整窗口大小, 希望这能进一步改善初次体验</p><p>要查看所有可用的安装方式, 请访问 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/download/">下载页面</a>, 也欢迎通过 <a class="underline underline-offset-5 font-medium" href="https://guix.gnu.org/en/contact/">联系页面</a> 与我们交流</p><p>Enjoy!</p></div><script src="/.tola/spa-dac8115c.js" data-tola-generated></script></body><!-- tola:hash:6e819204fb6dd827:4bbcbcafd87c79ba -->
+</html>

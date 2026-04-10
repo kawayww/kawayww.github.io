@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><script> </script><meta name="description" content="柳上川的博客" /><link rel="shortcut icon" href="/images/blog/avatar.avif?v=fbfd372d" type="image/x-icon" /><link rel="stylesheet" href="/fonts/SmileNerdFontMono-Regular/result.css?v=568803a4" /><link rel="stylesheet" href="/iconfonts/iconfont.css?v=db1a2290" /><link rel="stylesheet" href="/styles/tailwind.css?v=c46e8b83" /><link rel="stylesheet" href="/.tola/enhance-6b400663.css" /><script src="/scripts/site/core.js?v=44a2d3bb"></script><script src="/scripts/site/summaries.js?v=901a190f"></script><script src="/scripts/site/posts.js?v=0022ba72"></script><script src="/scripts/site/tabs.js?v=01ad2f37"></script><script src="/scripts/site/bootstrap.js?v=3ee73fa4"></script><meta name="darkreader-lock"><meta property="og:title" content="rust-typed-magic: 泛型关联类型(GATs)" /><meta property="og:description" content="学习 rust 中的 gat(泛型关联类型), HKT(高阶类型), type-constructor(类型构造器) 等概念" /><meta property="og:type" content="article" /><meta property="og:site_name" content="柳上川的博客" /><meta property="article:author" content="柳上川" /><meta property="article:section" content="rust-typed-magic" /><meta property="article:published_time" content="2024-04-24" /><meta property="article:tag" content="rust" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="rust-typed-magic: 泛型关联类型(GATs)" /><meta name="twitter:description" content="学习 rust 中的 gat(泛型关联类型), HKT(高阶类型), type-constructor(类型构造器) 等概念" /><title>rust-typed-magic: 泛型关联类型(GATs) | 柳上川的博客</title></head><body><div id="content" class="flex flex-col mx-4 mb-20 scroll-smooth" lang="zh-Hans"><div class="text-2xl sm:text-3xl my-4 w-full text-center">『泛型关联类型(GATs)』</div><div class="mx-auto mb-5 flex max-w-full flex-wrap items-center justify-center gap-2 px-2 text-center"><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-sky-700/90 text-slate-200">2024-04-24</span><span class="inline-flex items-center border whitespace-nowrap px-2.5 py-1 text-sm font-semibold leading-none bg-transparent border-slate-600/90 text-slate-300 sm:text-[0.95rem] border-slate-600/90 text-slate-300">柳上川</span><span class="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold leading-none text-slate-300 sm:text-[0.95rem]"><span class="text-slate-500">in</span> <a class="text-slate-300 underline decoration-sky-500/70 underline-offset-4 transition-colors hover:text-sky-200 hover:decoration-sky-300" href="/posts/rust-typed-magic">rust-typed-magic</a></span></div><div class="mx-auto my-5 flex w-fit max-w-full flex-col items-center gap-2 px-2 text-center"><div class="text-base font-semibold text-slate-300">摘要</div><div class="w-fit max-w-full text-base leading-7 text-slate-200">学习 rust 中的 gat(泛型关联类型), HKT(高阶类型), type-constructor(类型构造器) 等概念</div></div><div class="flex flex-col my-10 w-fit border-2 border-slate-500"><p><span class="text-2xl">目录:</span></p><div class="w-fit pr-2 my-2"><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">┌─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#guan-lian-lei-xing">关联类型</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#ding-yi">定义</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#shu-ru-yu-shu-chu">输入与输出</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#gong-cheng-xue-you-dian">工程学优点</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#fan-xing-guan-lian-lei-xing">泛型关联类型</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#type-&amp;&amp;-kind">Type &amp;&amp; Kind</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#lei-xing-gou-zao-qi">类型构造器</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#gao-jie-lei-xing-hkt">高阶类型(HKT)</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├─►</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#li-zi">例子</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#rong-qi-lei-xing">容器类型</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#functor">Functor</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#selffan-xing">Self泛型</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">├───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#family-trait">family-trait</a></span></div><div class="leading-5"><span class="pl-2"><span class="font-bold text-sm">└───</span><a class="text-sm hover:text-sky-500 hover:font-semibold hover:underline underline-offset-5" href="#jie-dai-die-dai">借贷迭代</a></span></div></div></div><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="guan-lian-lei-xing"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#guan-lian-lei-xing"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">关联类型</span></a></h1><p><em>关联类型(associated-type)</em> 非常常见<br /></p><h2 class="w-fit my-6" id="ding-yi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#ding-yi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">定义</span></a></h2><p>让我们以标准库中的 <a class="underline underline-offset-5 font-medium" href="https://doc.rust-lang.org/std/ops/trait.Add.html">Add</a> 为例开始:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Add&lt;Rhs = Self&gt; <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">add</span><span style="color: #939ab7">(</span>self, rhs<span style="color: #939ab7">:</span> Rhs<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Output<span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>该定义中的 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code> 便是所谓的 <em>关联类型(associated-type)</em>, 而 <code class="font-semibold text-[#aa8bd5]"><code>Rhs</code></code> 则是普通的泛型, 默认值是 <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code><br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">impl</span> Add <span style="color: #c6a0f6">for</span> i32 <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span> <span style="color: #8bd5ca">=</span> <span style="color: #c6a0f6">i32</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">add</span><span style="color: #939ab7">(</span>self, other<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">i32</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Output <span style="color: #939ab7">{</span> self <span style="color: #8bd5ca">+</span> other <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>我们在实现中指定 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code> 的类型, 而 <code class="font-semibold text-[#aa8bd5]"><code>Rhs</code></code> 也已经推导为 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code><br />关联类型的出现是必要的, 在这里, 我们需要先澄清一下 trait 的 <em>输入类型(input)</em> 与 <em>输出类型(output)</em><br /></p><h2 class="w-fit my-6" id="shu-ru-yu-shu-chu"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#shu-ru-yu-shu-chu"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">输入与输出</span></a></h2><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>input</code></code>: <code class="font-semibold text-[#aa8bd5]"><code>Add</code></code> 中的泛型参数 <code class="font-semibold text-[#aa8bd5]"><code>Rhs</code></code></li><li><code class="font-semibold text-[#aa8bd5]"><code>output</code></code>: <code class="font-semibold text-[#aa8bd5]"><code>Add</code></code> 中的关联类型 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code></li></ul><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">impl</span> Add<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> i32 <span style="color: #939ab7">{</span> <span style="color: #8bd5ca">...</span> <span style="color: #939ab7">}</span><br /><span style="color: #c6a0f6">impl</span> Add<span style="color: #8bd5ca">&lt;</span>Complex<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> i32 <span style="color: #939ab7">{</span> <span style="color: #8bd5ca">...</span> <span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>考虑这两种 <code class="font-semibold text-[#aa8bd5]"><code>impl</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Add&lt;i32&gt;</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>Add&lt;Complex&gt;</code></code> 被视作两个不一样的 trait<br />作为类型参数的 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>Complex</code></code> 都是该 trait 的输入, 通过输入, 才最终确定并形成了这两个不同的 trait<br />但对于关联类型, 它是某个已经确定了的 trait 的输出, 因此它只可能在 impl 的时候由实现者确定, 不参与 trait 的类型推断<br /><br />倘若没有关联类型, 我们只能全部写进泛型中当作参数<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">impl</span> Add<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span>, <span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> i32 <span style="color: #939ab7">{</span> <span style="color: #8bd5ca">...</span> <span style="color: #939ab7">}</span><br /><span style="color: #c6a0f6">impl</span> Add<span style="color: #8bd5ca">&lt;</span>Complex, Complex<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> i32 <span style="color: #939ab7">{</span> <span style="color: #8bd5ca">...</span> <span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>以第一个 impl 为例子, 第一个 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code> 代表 <code class="font-semibold text-[#aa8bd5]"><code>Rhs</code></code>, 第二个 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code> 代表 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code>, 但现在你还分得清 input 与 output 吗?<br />不仅如此, 原本不该参与 通过泛型列表确认是哪个trait 这一推导过程, 而应由实现者在 impl 内部指定的 Output, 此刻却暴露了出来<br /></p><h2 class="w-fit my-6" id="gong-cheng-xue-you-dian"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#gong-cheng-xue-you-dian"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">工程学优点</span></a></h2><p>你可能还是有点懵, 那就再以 <a class="underline underline-offset-5 font-medium" href="https://rust-lang.github.io/rfcs/0195-associated-items.html#associated-types-engineering-benefits-for-generics">rfc-0195</a> 中的代码为例子 (有些地方和真代码不一样, 看得懂即可):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Graph&lt;N, E&gt; <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">has_edge</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>self, <span style="color: #8bd5ca">&amp;</span>N, <span style="color: #8bd5ca">&amp;</span>N<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">bool</span><span style="color: #939ab7">;</span><br />    <span style="color: #8bd5ca">...</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">distance</span><span style="color: #8bd5ca">&lt;</span>N, E, G<span style="color: #939ab7">:</span> Graph<span style="color: #8bd5ca">&lt;</span>N, E<span style="color: #8bd5ca">&gt;</span><span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>graph<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span>G, start<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span>N, end<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span>N<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> uint <span style="color: #939ab7">{</span> <span style="color: #8bd5ca">...</span> <span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>我们有一个 <code class="font-semibold text-[#aa8bd5]"><code>Graph</code></code> trait, 来表示图论算法中的图, 涉及 3 种类型: <em>节点(Node)</em>, <em>边(Edge)</em>, <em>图(Graph)</em><br />如果我们定义了这样的 trait 并为某个具体的类型实现, 按理来说 <em>节点(N)</em> 与 <em>边(E)</em> 也是与该具体类型相关联的具体类型<br />但暴露给用户的却是必须强制写出来后才能使用的泛型参数, 这一点相当令人困惑<br /><br />但倘若用关联类型改写:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Graph <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">N</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">E</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">has_edge</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>self, <span style="color: #8bd5ca">&amp;</span>N, <span style="color: #8bd5ca">&amp;</span>N<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">bool</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">distance</span><span style="color: #8bd5ca">&lt;</span>G<span style="color: #939ab7">:</span> Graph<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>graph<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span>G, start<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">G</span><span style="color: #8bd5ca">::</span>N, end<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">G</span><span style="color: #8bd5ca">::</span>N<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> uint <span style="color: #939ab7">{</span> <span style="color: #8bd5ca">...</span> <span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>下游的用户在使用时不再需要被强迫写成泛型, 需要引用 <code class="font-semibold text-[#aa8bd5]"><code>Node</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>Edge</code></code> 代表的具体类型时, 直接通过 <code class="font-semibold text-[#aa8bd5]"><code>G::N</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>G::E</code></code> 来使用即可<br /><br />这在工程学上有着相当大的优势, 而且是单纯的泛型绝对替代不了的 (我直接翻译 rfc-0195 中的原文了):<br /></p><ul class="list-disc ml-5"><li>可读性/可扩展性:<br /></li></ul><p>关联类型可以一次抽象出整个类型系列，而不必单独命名每个类型, 这提高了泛型代码的可读性 (如上面的 <code class="font-semibold text-[#aa8bd5]"><code>distance</code></code> 函数)<br />它还使泛型更具 “可扩展性”: trait 可以包含其他关联类型, 而不会给 “不关心这些类型的客户端” 带来额外的负担<br />相比之下, 在今天的 rust 中，为一个 trait 添加额外的泛型参数, 通常感觉是个非常 “重量级” 的举动<br /><br /></p><ul class="list-disc ml-5"><li>易于重构/演进:<br /></li></ul><p>由于 trait 的用户不必单独对其关联类型进行泛型参数化, 因此可在不破坏现有客户端代码的情况下, 添加新的关联类型<br />(泛型的话, 你每次添加新的代码, 用户也得给每个函数都加上新的泛型参数啦!! 想想刚刚的 <code class="font-semibold text-[#aa8bd5]"><code>distance</code></code>, 这会破坏所有涉及该 trait 的代码)<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="fan-xing-guan-lian-lei-xing"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#fan-xing-guan-lian-lei-xing"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">泛型关联类型</span></a></h1><p>关联类型允许泛型, 就是所谓的泛型关联类型啦! (废话!)<br />(但是这玩意儿让 rust 团队写了七年, 期间重构数次编译器与类型分析系统)<br /><br />现在要介绍的, 是 rust 自 1.65 版本后引入的重大特性, 泛型关联类型(GAT/GATs, Generic-Associated-Types)<br />这是个相当重量级的特性, rust 团队为了支持这个特性, 写了整整将近 7 年, 诞生了诸如 <a class="underline underline-offset-5 font-medium" href="https://github.com/rust-lang/chalk">chalk</a> 等项目<br /><br />(没错, 将近 7 年, 确切来说是 6.5 年, 而且至今仍在完善)<br /><br />但现在(1.79)版本下, gat 仍然有相当多的不完善之处, 对其支持仅仅是最小化支持, 且带有相当多限制<br />但即使如此, 也已经相当够用了<br /><br />顾名思义, 泛型关联类型, 也就是在关联类型的基础上添加了泛型, 仍然是关联类型的一种:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Container <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Value</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span>  <span style="color: #939ab7">//</span><span style="color: #939ab7"> Here</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>是的, 你没有看错, 仅仅是使得关联类型的位置能够支持泛型了<br />但这却解决了非常非常多的问题, 让 rust 能模拟一个非常重要的语法特性: <em>HKT(高阶类型, Higher-Kinded-Type)</em><br /><br /><em>GATs</em> 让我们拥有了使用 <em>type-constructor(类型构造器)</em> 的能力<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="type-&amp;&amp;-kind"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#type-&amp;&amp;-kind"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">Type &amp;&amp; Kind</span></a></h1><p>那么什么是 <em>type-constructor</em> 呢? 介绍它之前, 先让我们了解一下 <em>type(类型)</em> 与 <em>kind(阶)</em> 的概念<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">not</span><span style="color: #939ab7">(</span>x<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">bool</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">bool</span> <span style="color: #939ab7">{</span><br />    <span style="color: #8bd5ca">!</span>x<br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>not</code></code> 函数接收一个 type 为 bool 的参数, 返回一个 type 为 <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code> 的值, 因此 <code class="font-semibold text-[#aa8bd5]"><code>not</code></code> 的 type 就是 <code class="font-semibold text-[#aa8bd5]"><code>bool -&gt; bool</code></code></li><li><code class="font-semibold text-[#aa8bd5]"><code>x</code></code> 这个参数的 type 则是 <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code></li></ul><p>type 表示 <em>值的类型</em>, 那么什么是 <em>kind</em> 呢? 其实这也是较好理解的, 是基于 type 再往上抽象了一层的产物:<br /></p><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><thead><tr><th><strong>name</strong></th><th><strong>type</strong></th><th><strong>kind</strong></th></tr></thead><tbody><tr><td>not</td><td>bool -&gt; bool</td><td>*</td></tr><tr><td>x</td><td>bool</td><td>*</td></tr></tbody></table></div><p>不管是 <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code> 还是 <code class="font-semibold text-[#aa8bd5]"><code>bool -&gt; bool</code></code>, 两者的类型都是一个已经非常具体的类型, 其 kind 则是 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code><br />为了便于理解, 姑且称呼这些类型为 <em>具体类型</em> (你也可以将它们叫作 <em>full-type</em>, <em>actual-type</em>, <em>standalone-type</em>)<br />这些类型都是很具体的, 其 kind 是相同的 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code><br /><br />(当我们站在 kind 这个抽象层上看待 type 时, 应该使用 type 指代具体的 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>i32 -&gt; i32</code></code>, 它们都是 type)<br />(其实站在 type 这个抽象层看待 value 时, 也是一样的道理)<br /><br />一句话, type 用来抽象 value, kind 用于抽象 type<br />倘若你要问 <code class="font-semibold text-[#aa8bd5]"><code>true</code></code> 的 kind 是 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code> 吗? 那不对, 你得说 <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code> 的 kind 是 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code> 才对<br /><br />你可能要说了:<br />什么鬼啊, 照你这么说岂不是所有的类型都是 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code> 了, 比如 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>fn(i32) -&gt; i32</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;T&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Result&lt;T, E&gt;</code></code>…<br />这些类型都是具体类型, 其 kind 难道不都是 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code> 吗?<br /><br />没错, 在 rust 中的 <code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;T&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Option&lt;T&gt;</code></code>, 它们都是一层的 type, 即其 kind 是 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code><br /><strong>但如果是 <code class="font-semibold text-[#aa8bd5]"><code>Vec</code></code> 而不是 <code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;T&gt;</code></code> 呢?</strong> 假设这也是某种类型<br /><br />你会发现, 你必须提供一个类型 (比如 <code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;i32&gt;</code></code> 就是向 <code class="font-semibold text-[#aa8bd5]"><code>Vec</code></code> 提供了 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code> 作为参数), 才能构造出最终的具体类型<br />对于这种特殊类型来说, 其 kind 就是 <code class="font-semibold text-[#aa8bd5]"><code>* -&gt; *</code></code> 了<br /></p><div class="my-4 mx-2 sm:mx-6 [&amp;_table]:border-collapse [&amp;_table]:border-2 [&amp;_table]:border-white [&amp;_td]:border-2 [&amp;_td]:border-white [&amp;_td]:px-3 [&amp;_td]:py-2 [&amp;_th]:border-2 [&amp;_th]:border-white [&amp;_th]:px-3 [&amp;_th]:py-2"><table><thead><tr><th><strong>type</strong></th><th><strong>kind</strong></th></tr></thead><tbody><tr><td>Vec&lt;i32&gt;</td><td>*</td></tr><tr><td>Vec&lt;?&gt;</td><td>* -&gt; *</td></tr><tr><td>Option&lt;i32&gt;</td><td>*</td></tr><tr><td>Option&lt;?&gt;</td><td>* -&gt; *</td></tr><tr><td>Result&lt;String, Error&gt;</td><td>*</td></tr><tr><td>Result&lt;String, ?&gt;</td><td>* -&gt; *</td></tr><tr><td>Result&lt;?, ?&gt;</td><td>* -&gt; * -&gt; *</td></tr></tbody></table></div><p><code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;?&gt;</code></code> 就表示前文的 <code class="font-semibold text-[#aa8bd5]"><code>Vec</code></code>, 需要向其中提供一个参数, 当你看到这, 类型构造器的概念其实也已经了解差不多了<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="lei-xing-gou-zao-qi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#lei-xing-gou-zao-qi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">类型构造器</span></a></h1><p>虽然前面已经讲了, 但这里还是写点具体的 rust 代码吧?<br /><br />如下代码中的 <code class="font-semibold text-[#aa8bd5]"><code>Trait::Type</code></code> 便如同前文的 <code class="font-semibold text-[#aa8bd5]"><code>not</code></code> 函数, 不过 <code class="font-semibold text-[#aa8bd5]"><code>not</code></code> 是参数接收一个值, 并返回一个值, 其参数是 type 为 <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code> 的 value<br />而此时的 <code class="font-semibold text-[#aa8bd5]"><code>Trait::Type</code></code> 却是接收一个类型, 并返回一个新类型, 即参数是 kind 为 <code class="font-semibold text-[#aa8bd5]"><code>*</code></code> 的 type, 返回值是个新的 type<br />像这样接收 type, 以 type 作为参数并创建新的 type 的玩意儿, 我们将其称为 类型构造器<br /><br />因此, <code class="font-semibold text-[#aa8bd5]"><code>Trait::Type</code></code> 的 kind 可以表示为 <code class="font-semibold text-[#aa8bd5]"><code>* -&gt; *</code></code><br />(或者 <code class="font-semibold text-[#aa8bd5]"><code>type -&gt; type</code></code>, 都表达了只在乎 kind, 就像是不管是 <code class="font-semibold text-[#aa8bd5]"><code>true</code></code> 还是 <code class="font-semibold text-[#aa8bd5]"><code>false</code></code>, 都可以用 <code class="font-semibold text-[#aa8bd5]"><code>bool</code></code> 来表示, 表达了只在乎 type)<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Trait <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Type</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>我们可以通过将类型作为 <code class="font-semibold text-[#aa8bd5]"><code>Type&lt;T&gt;</code></code> 中的泛型参数 <code class="font-semibold text-[#aa8bd5]"><code>T</code></code> 传入, 然后在 <code class="font-semibold text-[#aa8bd5]"><code>impl</code></code> 块里面指定新的类型, 比如如下我们指定了类型构造器是 <code class="font-semibold text-[#aa8bd5]"><code>X -&gt; Option&lt;X&gt;</code></code><br />在使用时, 我们只需要给类型构造器传入一个类型, 比如 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code> 后就能得到 <code class="font-semibold text-[#aa8bd5]"><code>Option&lt;i32&gt;</code></code> 了<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Trait <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Type</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span> Trait <span style="color: #c6a0f6">for</span> () <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Type</span><span style="color: #8bd5ca">&lt;</span>X<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #eed49f">Option</span><span style="color: #8bd5ca">&lt;</span>X<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">main</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">let</span> a <span style="color: #8bd5ca">=</span> <span style="color: #8bd5ca">&lt;</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">as</span> Trait<span style="color: #8bd5ca">&gt;</span><span style="color: #8bd5ca">::</span>Type<span style="color: #8bd5ca">::</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span><span style="color: #8bd5ca">::</span>default<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span>  <span style="color: #939ab7">//</span><span style="color: #939ab7"> Option::&lt;i32&gt;::default()</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p><em>GATs</em> 其实就是让 <em>关联类型</em> 允许成为 <em>类型构造器</em><br />之前这玩意也被叫作 <em>ACT(Associated-Type-Constructors, 关联类型构造器)</em>, 差不多的意思, 无须在意<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="gao-jie-lei-xing-hkt"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#gao-jie-lei-xing-hkt"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">高阶类型(HKT)</span></a></h1><p>你可能听到过许多次 <em>高阶类型(Higher-Kinded-Type, HKT)</em> 的名字, 其实这与 <em>高阶函数(Higner-Ordered-Function, HOF)</em> 是一个道理:<br /><br /></p><ul class="list-disc ml-5"><li><em>高阶函数(HOF)</em>: 某种参数可以是 <em>函数与变量</em> 的 <em>函数</em><br /></li><li><em>高阶类型(HKT)</em>: 某种参数可以是 <em>类型构造器与类型</em> 的 <em>类型构造器</em><br /></li></ul><p><br />当然, 就像是 <em>HOF(高阶函数)</em> 不仅可以接收 <em>函数</em> 作为参数, 也可以如同 <em>普通的函数</em> 那样接收 <em>变量</em> 作为参数<br />HKT(高阶类型) 也一样, 不仅可以接收 类型构造器 作为参数, 也可以如同 普通的类型构造器 那样接收 类型 作为参数<br /><br />继续类比进行理解, 对于 <em>高阶函数</em> 来讲, 什么 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>foreach</code></code> 之类的函数你肯定已经用过了, 这些函数都需要你手动传入闭包<br />换句话说, 这赋予了让用户选择怎么做的权利, 你传入 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code> 里面的闭包可以是让数组全部加 <code class="font-semibold text-[#aa8bd5]"><code>10</code></code>, 可以是全部变成 <code class="font-semibold text-[#aa8bd5]"><code>0</code></code><br /><br /><em>高阶类型(HKT)</em> 也是一样的道理, 比如我们在设计某个容器类型时:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> 一个包装容器的类型</span><br /><span style="color: #939ab7">//</span><span style="color: #939ab7"> 伪代码中的 `C[_]` 表示一个类型构造器</span><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">Container</span><span style="color: #8bd5ca">&lt;</span>C<span style="color: #939ab7">[</span><span style="color: #8bd5ca">_</span><span style="color: #939ab7">]</span> {<br />    data: C&lt;i32&gt;<br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br />}<br /><br />Container&lt;Vec&gt;<br />Container&lt;LinkedList&gt;</code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>你可以用 <code class="font-semibold text-[#aa8bd5]"><code>Container&lt;Vec&gt;</code></code> 或者 <code class="font-semibold text-[#aa8bd5]"><code>Container&lt;LinkedList&gt;</code></code> 让用户决定该以何种形式去存储数据<br />但很可惜的是, 前文也说过 rust 中并不存在 HKT, 仅仅只有 <code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;i32&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>LinkedList&lt;i32&gt;</code></code> 这些具体类型, 只能通过 GATs 去模拟<br />HKT 就是类似这样的类型, 只是它提供了 <em>根据传入的类型构造器(或者类型), 构造某个新类型</em> 的能力<br /><br />再多举一点类似的例子, 比如下面这段伪代码, 来自于 <a class="underline underline-offset-5 font-medium" href="https://docs.rs/lending-iterator/latest/lending_iterator/">lending_iterator</a> 中对 HKT 的说明:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> ArrayKind 是一个类型构造器</span><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">Container</span><span style="color: #8bd5ca">&lt;</span>ArrayKind<span style="color: #939ab7">[</span><span style="color: #8bd5ca">_</span><span style="color: #939ab7">]</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    array_i32s<span style="color: #939ab7">:</span> ArrayKind<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span>,<br />    array_strings<span style="color: #939ab7">:</span> ArrayKind<span style="color: #8bd5ca">&lt;</span><span style="color: #eed49f">String</span><span style="color: #8bd5ca">&gt;</span>,<br /><span style="color: #939ab7">}</span><br /><br /><br /><span style="color: #c6a0f6">type</span> <span style="color: #eed49f">StructOfVecs</span> <span style="color: #8bd5ca">=</span> Container<span style="color: #8bd5ca">&lt;</span><span style="color: #eed49f">Vec</span><span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">//</span><span style="color: #939ab7"> Equals to</span><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">StructOfVecs</span> <span style="color: #939ab7">{</span><br />    array_i32s<span style="color: #939ab7">:</span> <span style="color: #eed49f">Vec</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span>,<br />    array_strings<span style="color: #939ab7">:</span> <span style="color: #eed49f">Vec</span><span style="color: #8bd5ca">&lt;</span><span style="color: #eed49f">String</span><span style="color: #8bd5ca">&gt;</span>,<br /><span style="color: #939ab7">}</span><br /><br /><br /><span style="color: #c6a0f6">type</span> <span style="color: #eed49f">StructOfVecDeques</span> <span style="color: #8bd5ca">=</span> Container<span style="color: #8bd5ca">&lt;</span>LinkedList<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">//</span><span style="color: #939ab7"> Equals to</span><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">StructOfVecDeques</span> <span style="color: #939ab7">{</span><br />    array_i32s<span style="color: #939ab7">:</span> LinkedList<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span>,<br />    array_strings<span style="color: #939ab7">:</span> LinkedList<span style="color: #8bd5ca">&lt;</span><span style="color: #eed49f">String</span><span style="color: #8bd5ca">&gt;</span>,<br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>我们甚至可以更加灵活一点, 通过临时构造一个类型, 来取代上面作为参数的 <code class="font-semibold text-[#aa8bd5]"><code>Vec</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>LinkedList</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> 假设 `HKT!` 是一个魔法宏, 人为临时地构造了一个 `类型构造器`, 如同向 `map` 函数传入闭包一样</span><br /><span style="color: #c6a0f6">type</span> <span style="color: #eed49f">StructOfPairs</span> <span style="color: #8bd5ca">=</span> StructOfArrays<span style="color: #8bd5ca">&lt;</span> HKT!<span style="color: #939ab7">(</span>T <span style="color: #8bd5ca">=&gt;</span> <span style="color: #939ab7">[</span>T<span style="color: #939ab7">;</span> <span style="color: #f5a97f">2</span><span style="color: #939ab7">]</span><span style="color: #939ab7">)</span> <span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">//</span><span style="color: #939ab7"> Equals to</span><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">StructOfPairs</span> <span style="color: #939ab7">{</span><br />    array_i32s<span style="color: #939ab7">:</span> [<span style="color: #c6a0f6">i32</span>; 2],<br />    array_strings<span style="color: #939ab7">:</span> [String; 2],<br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>当然, rust 中并没有这种语法, 在 rust 中存在的是 <code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;i32&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>LinkedList&lt;i32&gt;</code></code> 这样的具体类型<br />但是, rust 中存在 GATs, 也就是上一节中介绍的那个 <em>泛型关联类型</em> 哩 :)<br /></p><hr class="border-2 border-dashed my-10" /><h1 class="w-fit my-6" id="li-zi"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-4xl" href="#li-zi"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-3xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">例子</span></a></h1><p>来点小例子吧, 随便瞎扯一些, 想到了啥就扯点啥<br /></p><h2 class="w-fit my-6" id="rong-qi-lei-xing"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#rong-qi-lei-xing"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">容器类型</span></a></h2><p>我将如何抽象某个容器类型放到第一个地方讲, 因为这部分比较经典与有趣 <span style="display: inline-block"><del>(其实是因为比较简单啦, 太难直接把读者劝退了咋办)</del></span><br />得益于 rust 中 GATs 的存在, 我们可以如上面的伪代码中那样抽象容器类型:<br /><br />在 <code class="font-semibold text-[#aa8bd5]"><code>iterate</code></code> 方法中, 我们返回了集合迭代时的具体类型, 但因为不同集合类型的迭代器具体类型是不一样的, 所以我们需要进行抽象:<br /><br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>Vec&lt;T&gt;</code></code> 对应的迭代器具体类型 <code class="font-semibold text-[#aa8bd5]"><code>std::slice::Iter&lt;'a, T&gt;</code></code></li><li><code class="font-semibold text-[#aa8bd5]"><code>LinkedList&lt;T&gt;</code></code> 对应的迭代器具体类型是 <code class="font-semibold text-[#aa8bd5]"><code>std::collections::linked_list::Iter&lt;'a, T&gt;</code></code></li></ul><p><br />因此我们可以通过 GATs 来表述, 无非就是多了个生命周期 (生命周期也是泛型的一种), 然后为各种集合类型实现该 trait:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #939ab7">//</span><span style="color: #939ab7"> Vec</span><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> Collection<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> Vec<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Iter</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'iter</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> std<span style="color: #8bd5ca">::</span>slice<span style="color: #8bd5ca">::</span>Iter<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'iter</span>, T<span style="color: #8bd5ca">&gt;</span> <br />    <span style="color: #c6a0f6">where</span><br />        T<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">'iter</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">empty</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span> <span style="color: #939ab7">{</span><br />        vec!<span style="color: #939ab7">[</span><span style="color: #939ab7">]</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">add</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self, value<span style="color: #939ab7">:</span> T<span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">push</span><span style="color: #939ab7">(</span>value<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">iterate</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>self<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Iter<span style="color: #8bd5ca">&lt;</span>'<span style="color: #8bd5ca">_</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">iter</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #939ab7">//</span><span style="color: #939ab7"> LinkedList</span><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> Collection<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> LinkedList<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Iter</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'iter</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> std<span style="color: #8bd5ca">::</span>collections<span style="color: #8bd5ca">::</span>linked_list<span style="color: #8bd5ca">::</span>Iter<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'iter</span>, T<span style="color: #8bd5ca">&gt;</span><br />    <span style="color: #c6a0f6">where</span><br />        T<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">'iter</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">empty</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span> <span style="color: #939ab7">{</span><br />        LinkedList<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">add</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self, value<span style="color: #939ab7">:</span> T<span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">push_back</span><span style="color: #939ab7">(</span>value<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">}</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">iterate</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>self<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Iter<span style="color: #8bd5ca">&lt;</span>'<span style="color: #8bd5ca">_</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">iter</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>以 trait 为基调的实现比较符合 rust 常见的编码风格<br />你可以把你脑子里那些什么 <em>HKT</em>, <em>GATs</em> 等名词, <em>类型构造器</em>, <em>kind</em>, <em>type</em> 等概念全删掉, 然后仅简单将上述代码看作关联类型<br />(这也是语言特性的开发团队为了一致性与兼容性所深思熟虑过的事情捏)<br /><br />然后我们可以拥有像这样的方法, 比如让元素是整数类型的集合转换为浮点数的集合:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">floatify</span><span style="color: #8bd5ca">&lt;</span>Input, Output<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>ints<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span>Input<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> Output<br /><span style="color: #c6a0f6">where</span> <br />    Input<span style="color: #939ab7">:</span> Collection<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span>,<br />    Output<span style="color: #939ab7">:</span> Collection<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">f32</span><span style="color: #8bd5ca">&gt;</span><br /><span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">mut</span> floats <span style="color: #8bd5ca">=</span> Output<span style="color: #8bd5ca">::</span>empty<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">for</span> <span style="color: #8bd5ca">&amp;</span>i <span style="color: #8bd5ca">in</span> ints<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">iterate</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />        floats<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">add</span><span style="color: #939ab7">(</span>i <span style="color: #8bd5ca">as</span> <span style="color: #c6a0f6">f32</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">}</span><br />    floats<br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">main</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">let</span> v <span style="color: #8bd5ca">=</span> vec!<span style="color: #939ab7">[</span><span style="color: #f5a97f">1</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">2</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">3</span><span style="color: #939ab7">]</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">let</span> v<span style="color: #939ab7">:</span> <span style="color: #eed49f">Vec</span><span style="color: #8bd5ca">&lt;</span><span style="color: #8bd5ca">_</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #8aadf4">floatify</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>v<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">let</span> l <span style="color: #8bd5ca">=</span> LinkedList<span style="color: #8bd5ca">::</span>from_iter<span style="color: #939ab7">(</span><span style="color: #939ab7">[</span><span style="color: #f5a97f">4</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">5</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">6</span><span style="color: #939ab7">]</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">let</span> l<span style="color: #939ab7">:</span> LinkedList<span style="color: #8bd5ca">&lt;</span><span style="color: #8bd5ca">_</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #8aadf4">floatify</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>l<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>同时需要注意类型推断, 这让迭代器被 <code class="font-semibold text-[#aa8bd5]"><code>collect</code></code> 成某个具体的集合类型时同理, 毕竟有许多实现了 <code class="font-semibold text-[#aa8bd5]"><code>Collection&lt;f32&gt;</code></code>, 编译器怎么知道是哪个呢?<br />我们希望不会改变集合的类型, 仅改变集合元素的类型, 但当故意手动添加不同集合的类型作为注解时, 能导致集合的类型改变:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">let</span> l <span style="color: #8bd5ca">=</span> LinkedList<span style="color: #8bd5ca">::</span>from_iter<span style="color: #939ab7">(</span><span style="color: #939ab7">[</span><span style="color: #f5a97f">4</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">5</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">6</span><span style="color: #939ab7">]</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">let</span> l<span style="color: #939ab7">:</span> <span style="color: #eed49f">Vec</span><span style="color: #8bd5ca">&lt;</span><span style="color: #8bd5ca">_</span><span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #8aadf4">floatify</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span>l<span style="color: #939ab7">)</span><span style="color: #939ab7">;</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>这是因为 rust 通过我们提供的类型推导出了 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code> 类型, 而 <code class="font-semibold text-[#aa8bd5]"><code>Input</code></code> 的类型则是根据我们传入的参数, 已经固定推导出来了<br />有没有什么办法从类型的关系上, 让 rust 不必通过用户提供的类型进行推导, 而是直接从参数进行推导, 从而限制住用户这种太过自由的行为呢?<br /><br />当然! 这里可以让编译器自动推导出 <code class="font-semibold text-[#aa8bd5]"><code>Input</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code> 是相同的集合类型(除了元素的类型不同) 这一我们想要的事实<br />其实就是加个关联类型成员, 再将其添加一个 trait-bound 即可:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Collection&lt;T&gt; <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span><span style="color: #8bd5ca">&lt;</span>M<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">:</span> Collection<span style="color: #8bd5ca">&lt;</span>M<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> Collection<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> Vec<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span><span style="color: #8bd5ca">&lt;</span>M<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #eed49f">Vec</span><span style="color: #8bd5ca">&lt;</span>M<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">floatify</span><span style="color: #8bd5ca">&lt;</span>Input<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>ints<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span>Input<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Input</span><span style="color: #8bd5ca">::</span>Output<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">f32</span><span style="color: #8bd5ca">&gt;</span><br /><span style="color: #c6a0f6">where</span> <br />    Input<span style="color: #939ab7">:</span> Collection<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span>,<br /><span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">mut</span> floats <span style="color: #8bd5ca">=</span> Input<span style="color: #8bd5ca">::</span>Output<span style="color: #8bd5ca">::</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">f32</span><span style="color: #8bd5ca">&gt;</span><span style="color: #8bd5ca">::</span>empty<span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>我们不想使用用户提供的类型注解, 所以直接用跟参数一起的关联类型, 避免了集合的类型能从 <code class="font-semibold text-[#aa8bd5]"><code>Vec</code></code> 变成 <code class="font-semibold text-[#aa8bd5]"><code>LinkedList</code></code><br />值得注意的是, 有时候我们想要的是将选择的权力交给调用方, 也就是用户, 在下文中的 family-trait 部分中会提到<br /></p><h2 class="w-fit my-6" id="functor"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#functor"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">Functor</span></a></h2><p>(倘若你已经理解了先前的知识点, 这里理解起来应该也不算太难)<br /><br />相信大家肯定用过 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code> 函数吧, 不管是 <code class="font-semibold text-[#aa8bd5]"><code>std::iter::Iterator</code></code> 这个 trait 里面的 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code>, 还是为 <code class="font-semibold text-[#aa8bd5]"><code>array</code></code> 类型单独实现的 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code>, 反正你肯定用过就对了<br />那么你有没有想过, 为什么 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code> 函数的实现就得分离开来呢? 能否有个统一的 trait, 比如 <code class="font-semibold text-[#aa8bd5]"><code>Mapable</code></code>, 能够抽象这样的行为, 统一规范所有的实现呢?<br /><br />在各种各样以函数式编程为主的语言中, 就存在着这样一个概念, 不过它不叫 <code class="font-semibold text-[#aa8bd5]"><code>Mapable</code></code>, 而叫 <code class="font-semibold text-[#aa8bd5]"><code>Functor</code></code><br />让我们尝试利用 rust 中的 GATs 来实现这样一个抽象了 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code> 行为的 trait:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Functor <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner</span><span style="color: #939ab7">;</span>      <span style="color: #939ab7">//</span><span style="color: #939ab7"> Unwrapped/Unplugged (代表容器内部值的类型)</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span>  <span style="color: #939ab7">//</span><span style="color: #939ab7"> Wrapper/Plugged (代表容器本身的类型, 其实是个接收类型创建新类型的类型构造器)</span><br /><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> 为了与原本的 `map` 区分开来, 我们将方法取名为 `fmap`  </span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">fmap</span><span style="color: #8bd5ca">&lt;</span>F, B<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>self, f<span style="color: #939ab7">:</span> F<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Output<span style="color: #8bd5ca">&lt;</span>B<span style="color: #8bd5ca">&gt;</span><br />    <span style="color: #c6a0f6">where</span><br />        F<span style="color: #939ab7">:</span> FnMut<span style="color: #939ab7">(</span><span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Inner<span style="color: #939ab7">)</span> -&gt; B<span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>倘若你把 <code class="font-semibold text-[#aa8bd5]"><code>Output&lt;T&gt;</code></code> 改成 <code class="font-semibold text-[#aa8bd5]"><code>Output</code></code>, 意图根据此来指代整个容器类型的概念…你可以自己试一试, 无法编译通过<br />以 <code class="font-semibold text-[#aa8bd5]"><code>Option</code></code> 类型为例 (<code class="font-semibold text-[#aa8bd5]"><code>Result</code></code> 类型同理):<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> Functor <span style="color: #c6a0f6">for</span> Option<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner</span> <span style="color: #8bd5ca">=</span> T<span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span><span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #eed49f">Option</span><span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">fmap</span><span style="color: #8bd5ca">&lt;</span>F, U<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>self, <span style="color: #c6a0f6">mut</span> f<span style="color: #939ab7">:</span> F<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Output<span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span><br />    <span style="color: #c6a0f6">where</span><br />        F<span style="color: #939ab7">:</span> FnMut<span style="color: #939ab7">(</span><span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Inner<span style="color: #939ab7">)</span> -&gt; U,<br />    <span style="color: #939ab7">{</span><br />        <span style="color: #f5a97f">#</span><span style="color: #939ab7">[</span><span style="color: #f5a97f">allow</span><span style="color: #939ab7">(</span><span style="color: #f5a97f">clippy::manual_map</span><span style="color: #939ab7">)</span><span style="color: #939ab7">]</span><br />        <span style="color: #c6a0f6">match</span> self <span style="color: #939ab7">{</span><br />            <span style="color: #eed49f">None</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #eed49f">None</span><span style="color: #939ab7">,</span><br />            <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span>t<span style="color: #939ab7">)</span> <span style="color: #8bd5ca">=&gt;</span> <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span><span style="color: #8aadf4">f</span><span style="color: #939ab7">(</span>t<span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br />        <span style="color: #939ab7">}</span><br /><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> // 你也可以直接复用标准库中已经实现的 `map`  </span><br />        <span style="color: #939ab7">//</span><span style="color: #939ab7"> self.map(f)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>照猫画虎为 <code class="font-semibold text-[#aa8bd5]"><code>array</code></code> 类型实现一下:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T, <span style="color: #c6a0f6">const</span> N<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">usize</span><span style="color: #8bd5ca">&gt;</span> Functor <span style="color: #c6a0f6">for</span> [T; N] <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner</span> <span style="color: #8bd5ca">=</span> T<span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Output</span><span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #939ab7">[</span>U<span style="color: #939ab7">;</span> N<span style="color: #939ab7">]</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">fmap</span><span style="color: #8bd5ca">&lt;</span>F, B<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>self, f<span style="color: #939ab7">:</span> F<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Output<span style="color: #8bd5ca">&lt;</span>B<span style="color: #8bd5ca">&gt;</span><br />    <span style="color: #c6a0f6">where</span><br />        F<span style="color: #939ab7">:</span> FnMut<span style="color: #939ab7">(</span><span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Inner<span style="color: #939ab7">)</span> -&gt; B,<br />    <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">map</span><span style="color: #939ab7">(</span>f<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>倘若没有 GATs, 也就是没有 <code class="font-semibold text-[#aa8bd5]"><code>type Output&lt;T&gt;</code></code> 这里的类型构造器的情况下, 我们将只可能拥有同态的 functor<br />也就是说 <code class="font-semibold text-[#aa8bd5]"><code>map</code></code> 函数必须返回相同的类型, 即只能 <code class="font-semibold text-[#aa8bd5]"><code>T -&gt; T</code></code>, 而无法 <code class="font-semibold text-[#aa8bd5]"><code>T -&gt; U</code></code>, 我们此刻的是多态的 functor, 对应后者<br /><br />还有其他非常多的来自函数式编程中的一些概念, 不过 Functor 算是其中最经典最简单的一个了<br />其余在 rust 中的实现, 就请自行查阅与思考吧!<br /><br /><span style="display: inline-block"><del>(我是不会告诉你其实是因为有些概念我也看不懂所以才不继续讲的)</del></span><br /></p><h2 class="w-fit my-6" id="selffan-xing"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#selffan-xing"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">Self泛型</span></a></h2><p>众所周知, rust 中的 <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code> 是一个类型别名, 指示你正在 impl 的那个类型, 如 <code class="font-semibold text-[#aa8bd5]"><code>impl i32 { ... }</code></code> 时, <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code> 就指代 <code class="font-semibold text-[#aa8bd5]"><code>i32</code></code><br />同样众所周知的一点, 那就是 <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code> 是不能够添加泛型的, 你只能 <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code>, 而不能 <code class="font-semibold text-[#aa8bd5]"><code>Self&lt;T&gt;</code></code><br /><br />让 <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code> 能够泛型化有什么用呢? 让我们以之前的 <code class="font-semibold text-[#aa8bd5]"><code>Functor</code></code> 为例, 倘若其可以支持泛型:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> Functor&lt;T&gt;: HKT1 <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">map</span><span style="color: #8bd5ca">&lt;</span>U, F<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>self, f<span style="color: #939ab7">:</span> F<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>With<span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span><br />    <span style="color: #c6a0f6">where</span><br />        F<span style="color: #939ab7">:</span> FnMut<span style="color: #939ab7">(</span>T<span style="color: #939ab7">)</span> -&gt; U<span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> Functor<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> Option<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">map</span><span style="color: #8bd5ca">&lt;</span>U, F<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>self, f<span style="color: #939ab7">:</span> F<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> Self<span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span> <br />    <span style="color: #c6a0f6">where</span><br />        F<span style="color: #939ab7">:</span> FnMut<span style="color: #939ab7">(</span>T<span style="color: #939ab7">)</span> -&gt; U<br />    <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">map</span><span style="color: #939ab7">(</span>f<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>倘若用模式匹配的思想看待上述伪代码, 你会发现返回值的类型 <code class="font-semibold text-[#aa8bd5]"><code>Self&lt;U&gt;</code></code> 对应 <code class="font-semibold text-[#aa8bd5]"><code>Option&lt;U&gt;</code></code>, 则 <code class="font-semibold text-[#aa8bd5]"><code>Self</code></code> 就自然对应了 <code class="font-semibold text-[#aa8bd5]"><code>Option</code></code><br />这在今天的 rust 中可能吗? 不, 这不可能, rust 中的类型都是具体类型, 比如 <code class="font-semibold text-[#aa8bd5]"><code>M&lt;T, U, Z&gt;</code></code>, 而不可能是 <code class="font-semibold text-[#aa8bd5]"><code>M</code></code> 这种没写全的<br /><br />哭唧唧, 要是能够像这样写岂不是会写得很爽? (虽然本质上一样, 无非是先前那套 Functor 的关联类型给你隐藏起来了而已)<br />但鉴于 GATs 的存在, 我们确实可以模拟出来:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> HKT1 <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner1</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">With</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> HKT1 <span style="color: #c6a0f6">for</span> Option<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner1</span> <span style="color: #8bd5ca">=</span> T<span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">With</span><span style="color: #8bd5ca">&lt;</span>A<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> <span style="color: #eed49f">Option</span><span style="color: #8bd5ca">&lt;</span>A<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> Functor<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #c6a0f6">for</span> Option<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">map</span><span style="color: #8bd5ca">&lt;</span>U, F<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>self, f<span style="color: #939ab7">:</span> F<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>With<span style="color: #8bd5ca">&lt;</span>U<span style="color: #8bd5ca">&gt;</span><br />    <span style="color: #c6a0f6">where</span><br />        F<span style="color: #939ab7">:</span> FnMut<span style="color: #939ab7">(</span>T<span style="color: #939ab7">)</span> -&gt; U,<br />    <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">map</span><span style="color: #939ab7">(</span>f<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>本质上和先前的 <code class="font-semibold text-[#aa8bd5]"><code>Functor</code></code> 是一样的, 只是我们包装起来稍微舒服点, 通过 <code class="font-semibold text-[#aa8bd5]"><code>Self::With&lt;U&gt;</code></code> 来模拟 <code class="font-semibold text-[#aa8bd5]"><code>Self&lt;U&gt;</code></code> 了<br />你也可以模仿上面的 <code class="font-semibold text-[#aa8bd5]"><code>HKT1</code></code>, 定义 <code class="font-semibold text-[#aa8bd5]"><code>HKT2</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>HKT3</code></code> 等 trait, 并且实现:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> HKT2 <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner1</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Inner2</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">With</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #939ab7">,</span> U<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>如果使用宏的话, 这些重复的定义都能够自动生成, 且自动为你指定的类型实现, 不过我懒得继续讲宏了, 就这样吧, 略过略过!!<br />(你可以把宏理解为操控字符串, 只要你懂得怎么自动生成这些代码, 就可以通过声明宏喂给编译器进行解析)<br /></p><h2 class="w-fit my-6" id="family-trait"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#family-trait"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">family-trait</span></a></h2><p><code class="font-semibold text-[#aa8bd5]"><code>family-trait</code></code>/<code class="font-semibold text-[#aa8bd5]"><code>type-family</code></code> 是种技巧, 也可以说是设计模式, 你能暴露出部分内部的实现, 然后让用户自行选择使用哪部分<br /><br />其实理解起来很简单, 让我们看看下面几个类型:<br /><br /></p><ul class="list-disc ml-5"><li><code class="font-semibold text-[#aa8bd5]"><code>Rc&lt;RefCell&lt;T&gt;&gt;</code></code></li><li><code class="font-semibold text-[#aa8bd5]"><code>Rc&lt;Cell&lt;T&gt;&gt;</code></code></li><li><code class="font-semibold text-[#aa8bd5]"><code>Arc&lt;Mutex&lt;T&gt;&gt;</code></code></li><li><code class="font-semibold text-[#aa8bd5]"><code>Arc&lt;RwLock&lt;T&gt;&gt;</code></code></li></ul><p><br />这些都是 <em>智能指针(smart-pointer)</em>, 且提供了内部可变性, 但是分为了单/多线程的情况<br /><br />让我们再具体一点, 并且将问题只放在 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>Arc</code></code> 上, 倘若你正在编写树状的数据结构, 用 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code> 或 <code class="font-semibold text-[#aa8bd5]"><code>Arc</code></code> 来包裹树的结点<br />如果你只用了 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code> 作为结点的类型, 那么你的用户就会开始吵闹: “喂, 为什么用的不是 <code class="font-semibold text-[#aa8bd5]"><code>Arc</code></code> 啊? 你让我多线程情况下怎么用啊?”<br />如果你只用了 <code class="font-semibold text-[#aa8bd5]"><code>Arc</code></code> 作为结点的类型, 那么你的用户就会开始吵闹: “喂, 为什么用的不是 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code> 啊? 单线程情况下速度也太慢了吧?”<br /><br />你汗流浃背, 为了满足两大需求不同的群体, 你选择…写两份代码! 粘贴, 复制, 将 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code> 替换为 <code class="font-semibold text-[#aa8bd5]"><code>Arc</code></code>, 一气呵成<br />(但面对天灾(指暴怒且嗷嗷待哺的用户们), 我们并非无计可施)<br /><br />(其实写两份代码也是非常简单的正确方法捏, 比如 <code class="font-semibold text-[#aa8bd5]"><code>im-rc</code></code> 与 <code class="font-semibold text-[#aa8bd5]"><code>im</code></code> 这两个 crate 就是这种情况)<br /><br />倘若我们可以定义一个 reference-counted(引用计数) 的 family<br />但通过 GATs, 我们就可以先内部进行抽象, 然后再暴露出去让用户自己选择到底是 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code> 还是 <code class="font-semibold text-[#aa8bd5]"><code>Arc</code></code> 了:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">trait</span> RefCountedFamily <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Pointer</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">new</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>value<span style="color: #939ab7">:</span> T<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Pointer<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">RcFamily</span><span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">impl</span> RefCountedFamily <span style="color: #c6a0f6">for</span> RcFamily <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Pointer</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> Rc<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">new</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>value<span style="color: #939ab7">:</span> T<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Pointer<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />        Rc<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span>value<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">ArcFamily</span><span style="color: #939ab7">;</span><br /><span style="color: #c6a0f6">impl</span> RefCountedFamily <span style="color: #c6a0f6">for</span> ArcFamily <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Pointer</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #8bd5ca">=</span> Arc<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">new</span><span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">(</span>value<span style="color: #939ab7">:</span> T<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Pointer<span style="color: #8bd5ca">&lt;</span>T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />        Arc<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span>value<span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">Container</span><span style="color: #8bd5ca">&lt;</span>P<span style="color: #939ab7">:</span> RefCountedFamily<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    data<span style="color: #939ab7">:</span> <span style="color: #c6a0f6">P</span><span style="color: #8bd5ca">::</span>Pointer<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">i32</span><span style="color: #8bd5ca">&gt;</span>,<br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>用户使用的时候可以通过传入诸如 <code class="font-semibold text-[#aa8bd5]"><code>RcFamily</code></code> 这种实现了 family-trait 的具体类型, 以此选择了使用 <code class="font-semibold text-[#aa8bd5]"><code>Rc</code></code>:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">let</span> c <span style="color: #8bd5ca">=</span> Container<span style="color: #8bd5ca">::</span><span style="color: #8bd5ca">&lt;</span>RcFamily<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    data<span style="color: #939ab7">:</span> RcFamily<span style="color: #8bd5ca">::</span>new<span style="color: #939ab7">(</span><span style="color: #f5a97f">1</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span><br /><span style="color: #939ab7">}</span><span style="color: #939ab7">;</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>对于最开始的 <code class="font-semibold text-[#aa8bd5]"><code>Rc&lt;RefCell&lt;T&gt;&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Rc&lt;Cell&lt;T&gt;&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Arc&lt;Mutex&lt;T&gt;&gt;</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>Arc&lt;RwLock&lt;T&gt;&gt;</code></code> 也是同理<br />你可以组合这些类型, 暴露出来, 然后交给用户进行选择, 抽象了 线程安全/智能指针 的选择<br /></p><h2 class="w-fit my-6" id="jie-dai-die-dai"><a class="group inline-flex w-fit items-center gap-2 no-underline transition-all duration-200 hover:translate-x-1 hover:text-accent text-2xl" href="#jie-dai-die-dai"><span class="inline-flex items-center self-center shrink-0 leading-none text-slate-500 transition-all duration-200 group-hover:text-sky-300 group-hover:translate-x-0.5 text-2xl">&gt;</span> <span class="transition-all duration-200 group-hover:underline group-hover:underline-offset-4 group-hover:decoration-sky-400">借贷迭代</span></a></h2><p>(以下部分代码来自 <a class="underline underline-offset-5 font-medium" href="https://rust-lang.github.io/generic-associated-types-initiative/explainer/motivation.html">https://rust-lang.github.io/generic-associated-types-initiative/explainer/motivation.html</a>)<br /><br /><code class="font-semibold text-[#aa8bd5]"><code>streaming-iterator</code></code>, <code class="font-semibold text-[#aa8bd5]"><code>lending-iterator</code></code>, 这两个都是同一个东西, 请注意, 这和 <em>async(异步)</em> 生态中的 <code class="font-semibold text-[#aa8bd5]"><code>Stream</code></code> 不是一个概念<br />因为前者的名字可能会与 async 生态中的 <code class="font-semibold text-[#aa8bd5]"><code>Stream</code></code> 一起造成困扰, 所以我个人更偏向于使用后者的名词<br /><br /><em>lending-iterator(借贷迭代器)</em>, 概念上来讲就是 GATs 版的 <code class="font-semibold text-[#aa8bd5]"><code>std::iter::Iterator</code></code>, 并且关联类型的泛型参数是个 lifetime<br /><br />先让我们重温下 <code class="font-semibold text-[#aa8bd5]"><code>std::iter::Iterator</code></code> 相关的内容:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">pub</span> <span style="color: #c6a0f6">trait</span> Iterator <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Item</span><span style="color: #939ab7">;</span><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">Option</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Item<span style="color: #8bd5ca">&gt;</span><span style="color: #939ab7">;</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br />    <span style="color: #939ab7">//</span><span style="color: #939ab7"> ...</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>里面有一个非泛型的关联类型 <code class="font-semibold text-[#aa8bd5]"><code>Item</code></code>, 我们可以调用 <code class="font-semibold text-[#aa8bd5]"><code>next</code></code> 方法进行迭代, 因此我们可以写出类似这样的代码:<br /></p><div class="group relative mx-2 sm:mx-6 my-4 border-2 border-slate-500 leading-[1.2em] [&amp;_pre]:bg-[#24273a] [&amp;_pre]:m-0 [&amp;_pre]:overflow-x-auto [&amp;_code]:block [&amp;_code]:text-[#cad3f5] [&amp;_code]:p-4 [&amp;_code]:text-sm sm:[&amp;_code]:text-base"><script>
+function copy_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const text = code.getAttribute('data-original-text') || code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    button.textContent = '好啦';
+    setTimeout(() => button.textContent = '复制', 2000);
+  });
+}
+function fold_code(button) {
+  const code = button.parentElement.querySelector('code');
+  const next_fold_state = button.textContent;
+  if (next_fold_state == '折叠') {
+    if (!code.hasAttribute('data-original')) {
+      code.setAttribute('data-original', code.innerHTML);
+      code.setAttribute('data-original-text', code.innerText);
+    }
+    const lines = code.getAttribute('data-original-text').split('\n');
+    code.textContent = lines[0] || '';
+    button.textContent = '展开';
+  } else {
+    code.innerHTML = code.getAttribute('data-original');
+    button.textContent = '折叠';
+  }
+}
+</script><pre><code data-lang="rust"><span style="color: #c6a0f6">struct</span> <span style="color: #eed49f">Iter</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'a</span>, T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    data<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">'a</span> [T],<br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">impl</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'a</span>, T<span style="color: #8bd5ca">&gt;</span> Iterator <span style="color: #c6a0f6">for</span> Iter<span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">'a</span>, T<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">type</span> <span style="color: #eed49f">Item</span> <span style="color: #8bd5ca">=</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">'a</span> T<span style="color: #939ab7">;</span><br /><br />    <span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #c6a0f6">mut</span> self<span style="color: #939ab7">)</span> <span style="color: #939ab7">-&gt;</span> <span style="color: #eed49f">Option</span><span style="color: #8bd5ca">&lt;</span><span style="color: #c6a0f6">Self</span><span style="color: #8bd5ca">::</span>Item<span style="color: #8bd5ca">&gt;</span> <span style="color: #939ab7">{</span><br />        self<span style="color: #8bd5ca">.</span>data<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">split_first</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #8bd5ca">.</span><span style="color: #8aadf4">map</span><span style="color: #939ab7">(</span><span style="color: #939ab7">|</span><span style="color: #939ab7">(</span>prefix_elem<span style="color: #939ab7">,</span> suffix<span style="color: #939ab7">)</span><span style="color: #939ab7">|</span> <span style="color: #939ab7">{</span><br />            self<span style="color: #8bd5ca">.</span>data <span style="color: #8bd5ca">=</span> suffix<span style="color: #939ab7">;</span><br />            prefix_elem<br />        <span style="color: #939ab7">}</span><span style="color: #939ab7">)</span><br />    <span style="color: #939ab7">}</span><br /><span style="color: #939ab7">}</span><br /><br /><span style="color: #c6a0f6">fn</span> <span style="color: #8aadf4">main</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span> <span style="color: #939ab7">{</span><br />    <span style="color: #c6a0f6">let</span> <span style="color: #c6a0f6">mut</span> iter <span style="color: #8bd5ca">=</span> Iter <span style="color: #939ab7">{</span> data<span style="color: #939ab7">:</span> <span style="color: #8bd5ca">&amp;</span><span style="color: #939ab7">[</span><span style="color: #f5a97f">1</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">2</span><span style="color: #939ab7">,</span> <span style="color: #f5a97f">3</span><span style="color: #939ab7">]</span> <span style="color: #939ab7">}</span><span style="color: #939ab7">;</span><br />    assert_eq!<span style="color: #939ab7">(</span>iter<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span> <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #f5a97f">1</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    assert_eq!<span style="color: #939ab7">(</span>iter<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span> <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #f5a97f">2</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    assert_eq!<span style="color: #939ab7">(</span>iter<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span> <span style="color: #eed49f">Some</span><span style="color: #939ab7">(</span><span style="color: #8bd5ca">&amp;</span><span style="color: #f5a97f">3</span><span style="color: #939ab7">)</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br />    assert_eq!<span style="color: #939ab7">(</span>iter<span style="color: #8bd5ca">.</span><span style="color: #8aadf4">next</span><span style="color: #939ab7">(</span><span style="color: #939ab7">)</span><span style="color: #939ab7">,</span> <span style="color: #eed49f">None</span><span style="color: #939ab7">)</span><span style="color: #939ab7">;</span><br /><span style="color: #939ab7">}</span></code></pre><button class="absolute top-2 right-2 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="copy_code(this)">复制</button><button class="absolute top-2 right-16 hidden group-hover:inline text-xl cursor-pointer hover:text-cyan-400 transition-colors" onclick="fold_code(this)">折叠</button></div><p>在这里, <code class="font-semibold text-[#aa8bd5]"><code>Item</code></code> 的类型被指定为 <code class="font-semibold text-[#aa8bd5]"><code>&amp;'a T</code></code>, sd<br /></p><p>(写累了, 鸽了, 什么时候想起来了再继续吧)<br /></p><hr class="border-2 border-dashed my-10" /><div class="flex flex-col sm:mx-2 *:my-2"><a class="flex items-center border-2 border-slate-500 w-full sm:rounded-sm hover:border-white justify-start" href="/posts/rust-typed-magic/curried-function"><span class="text-2xl sm:text-4xl sm:p-2 pl-2 pr-1 order-first">&lt;</span> <span class="text-xl sm:text-2xl sm:p-2">柯里化柯里化与过程过程宏</span></a> <a class="flex items-center border-2 border-slate-500 w-full sm:rounded-sm hover:border-white justify-end" href="/posts/rust-typed-magic/heterogeneous-list"><span class="text-2xl sm:text-4xl sm:p-2 pr-2 pl-1 order-last">&gt;</span> <span class="text-xl sm:text-2xl sm:p-2">异构列表</span></a></div></div><script src="/.tola/spa-dac8115c.js" data-tola-generated></script></body><!-- tola:hash:3f7b51316c4738e9:4bbcbcafd87c79ba -->
+</html>

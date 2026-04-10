@@ -1,0 +1,1 @@
+(()=>{let e=window.siteRuntime||(window.siteRuntime={});e.initArticleSummaries=function(t=document){requestAnimationFrame(()=>{e.initOverviewMasonry?.(t)}),t.querySelectorAll(`details`).forEach(t=>{t.dataset.summaryToggleBound!==`1`&&(t.dataset.summaryToggleBound=`1`,t.addEventListener(`toggle`,()=>e.initArticleSummaries(t)))})}})();
